@@ -9,6 +9,44 @@ div#prostor {
     gap: 0px;
 }
 
+header {
+    height: 130px;
+    width: 1100px;
+    margin: auto;
+    /*background-color: blue;*/
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.indikator {
+    height: 100px;
+    width: 200px;
+    /*background-color: red;*/
+    display: inline-block;
+}
+
+.brojac {
+    width: auto;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    border: solid;
+    border-width: 1px;
+    background-color: #eeeeee;
+}
+
+.opis {
+    width: auto;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: sans-serif;
+}
+
 #element_1k0 {
     grid-row: 300 / span 30;
     grid-column: 1080 / span 50;

@@ -1,7 +1,13 @@
 $('document').ready(function() {
+    level = 1;
+    bodovi = 0;
+    lives = 3;
+    
     idbr = 0;
     dt = 20;
     gamefl = true;
+    gameoverfl = false;
+    novi_level = false;
 
     document.addEventListener("keydown", pritisak_gumba_down);
     document.addEventListener("keyup", pritisak_gumba_up);
@@ -14,12 +20,16 @@ $('document').ready(function() {
     var yy = [22];
     var xc = [0], yc = [0];
     
-    set_up_game(2);
+    set_up_game(1);
 })
 
 function set_up_game(level) {
     dt = 20;
     sirina_zidova = 30;
+    
+    postavi_level(level);
+    postavi_bodove(bodovi);
+    postavi_zivote(lives);
     
     if (level == 1) {
         zidovi = new Zidovi(sirina_zidova, '#cccccc');
@@ -38,12 +48,15 @@ function set_up_game(level) {
         dest = true;
     
         objekti = [];
+        //objekti.push(new Objekt(300, 300, 150, 150, 'blue'));
+        
         dodaj_red_objekata(143, 100, 10, 80, 40, 'red', 10, objekti);
         dodaj_red_objekata(143, 150, 10, 80, 40, 'yellow', 10, objekti);
         dodaj_red_objekata(143, 200, 10, 80, 40, '#246cf2', 10, objekti);
         dodaj_red_objekata(143, 250, 10, 80, 40, '#ce23e0', 10, objekti);
         dodaj_red_objekata(143, 300, 10, 80, 40, 'green', 10, objekti);
         //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti)
+        
     } else if (level == 2) {
         zidovi = new Zidovi(sirina_zidova, '#cccccc');
         console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
@@ -92,7 +105,14 @@ function engine() {
         if (lopta.interakcija_zidovi(zidovi, dt)) flag = false;
         if (reket.interakcija(lopta, dt))  flag = false;
         
-        for (var i = objekti.length-1; i > -1; i--) {
+        var dulj = objekti.length;
+        if (dulj == 0) {
+            novi_level = true;
+            clearInterval(id);
+            zavrsi_gem(1);
+        }
+        
+        for (var i = dulj-1; i > -1; i--) {
             var obje = objekti[i];
             if (obje.interakcija(lopta, dt)) {
                 flag = false;
@@ -104,7 +124,13 @@ function engine() {
             clearInterval(id);
             gamefl = false;
             console.log('UGASIO sam interval');
-            zavrsi_gem();
+            lives--;
+            postavi_zivote(lives);
+            if (lives == 0) {
+                gameoverfl = true;
+                zavrsi_gem(gameoverfl);
+            }
+            else zavrsi_gem(gameoverfl);
         }
         if (flag) lopta.pomakni(dt);
     }
@@ -112,12 +138,21 @@ function engine() {
 }
 
 
-function zavrsi_gem() {
+function zavrsi_gem(flag) {
+// za flag true je gameover, za false je izgubljen zivot, nastavlja se level, za strogo 1 je novi level
     var el = $("<div></div>");
     el.attr('id', 'kraj');
     
-    var el1 = $("<p id='poruka1'>You lost!</p>");
-    var el2 = $("<p>Press S to restart.</p>");
+    if (flag === 1) {
+        var el1 = $("<p id='poruka1'>Level " + (level+1).toString() + "!</p>");
+        var el2 = $("<p>Press S to begin.</p>");
+    } else if (flag) {
+        var el1 = $("<p id='poruka1'>Game over!</p>");
+        var el2 = $("<p>Press S to start new game.</p>");
+    } else {
+        var el1 = $("<p id='poruka1'>You missed!</p>");
+        var el2 = $("<p>Press S to continue.</p>");
+    }
     el.append(el1);
     el.append(el2);
     
@@ -132,7 +167,6 @@ function zavrsi_gem() {
     
     $('#prostor').append(el);
 }
-
 
 function dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti) {
 // ova funkcija u polje objekti dodaje red n objekata zadane boje, sirine i visine
@@ -850,11 +884,33 @@ function pritisak_gumba_down(ev) {
             }
             break;
         case "KeyS":
-            if (!gamefl) {
+            if (novi_level) {
+                novi_level = false;
                 $('#prostor').empty();
-                set_up_game(1);
+                level++;
+                set_up_game(level);
+                break;
+            }
+        
+            if (gameoverfl) {
+                $('#prostor').empty();
+                level = 1;
+                bodovi = 0;
+                lives = 3;
+                
+                set_up_game(level);
                 //id = setInterval(engine, dt);
                 console.log('POSTAVIO sam interval');
+                gamefl = true;
+                gameoverfl = false;
+                break;
+            } else if (!gamefl) {
+                $('#kraj').remove();
+                
+                lopta.postavi_na_reket(reket);
+                //set_up_game(1);
+                id = setInterval(engine, dt);
+                console.log('POSTAVIO sam ponovo lopticu na reket');
                 gamefl = true;
                 break;
             }
@@ -886,3 +942,6 @@ function pusti_zvuk(broj) {
     return fun;
 }
 
+function postavi_level(level) {$('#level > .brojac').html(level.toString());}
+function postavi_bodove(bodovi) {$('#bodovi > .brojac').html(bodovi.toString());}
+function postavi_zivote(lives) {$('#zivoti > .brojac').html(lives.toString());}
