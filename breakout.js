@@ -6,6 +6,10 @@ $('document').ready(function() {
     document.addEventListener("keydown", pritisak_gumba_down);
     document.addEventListener("keyup", pritisak_gumba_up);
     
+    zvuk1 = pusti_zvuk(1);
+    zvuk2 = pusti_zvuk(2);
+    zvuk3 = pusti_zvuk(4);
+    
     var xx = [33];
     var yy = [22];
     var xc = [0], yc = [0];
@@ -22,24 +26,24 @@ function set_up_game() {
     console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
     
     
-    lopta = new Lopta(20, 575+100, 640-19, 200);
+    lopta = new Lopta(10, 575+100, 640-19, 500);
     //Lopta(radijus, centarx, centary, vl)
     lopta.postavi_brzinu(-20, 0);
     
-    reket = new Reket(500, 650, 450, 150, 20, 'blue', 25);
+    reket = new Reket(500, 650, 600, 100, 20, 'blue', 25);
     //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
     
     lopta.postavi_na_reket(reket);
-    
-    objekt = new Objekt(500, 300, 150, 150, 'red');
-    //objekt(centarx, centary, sirina, visina, boja)
-    //objekt.ukloni_objekt();
     
     list = true;
     dest = true;
     
     objekti = [];
-    dodaj_red_objekata(110, 100, 10, 100, 50, 'blue', 10, objekti);
+    dodaj_red_objekata(143, 100, 10, 80, 40, 'red', 10, objekti);
+    dodaj_red_objekata(143, 150, 10, 80, 40, 'yellow', 10, objekti);
+    dodaj_red_objekata(143, 200, 10, 80, 40, '#246cf2', 10, objekti);
+    dodaj_red_objekata(143, 250, 10, 80, 40, '#ce23e0', 10, objekti);
+    dodaj_red_objekata(143, 300, 10, 80, 40, 'green', 10, objekti);
     //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti)
     
     
@@ -55,7 +59,6 @@ function engine() {
     if (!reket.sticked) {
         if (lopta.interakcija_zidovi(zidovi, dt)) flag = false;
         if (reket.interakcija(lopta, dt))  flag = false;
-        if (objekt.interakcija(lopta, dt)) flag = false;
         
         for (var i = objekti.length-1; i > -1; i--) {
             var obje = objekti[i];
@@ -195,6 +198,7 @@ function Lopta(radijus, centarx, centary, vl) {
                 this.centarx += this.vx * (dt-dt1)/1000;        
                 this.centary += this.vy * dt/1000;
                 flag = true;
+                zvuk1();
             }
         } else {
             var pomak = this.vx * dt / 1000;
@@ -207,11 +211,13 @@ function Lopta(radijus, centarx, centary, vl) {
                 this.centarx += this.vx * (dt-dt1)/1000;        
                 this.centary += this.vy * dt/1000;
                 flag = true;
+                zvuk1();
             }
         }
         
         if (this.vy > 0) {
-            if (zid.donji == -1) return false;
+           //if (zid.donji == -1) return false;
+           if (zid.donji != -1) {
             
             var pomak = this.vy * dt / 1000;
             var noviy = this.centary + pomak;
@@ -223,7 +229,9 @@ function Lopta(radijus, centarx, centary, vl) {
                 this.centary += this.vy * (dt-dt1)/1000;        
                 this.centarx += this.vx * dt/1000;
                 flag = true;
+                zvuk1();
             }
+           } 
         } else {
             var pomak = this.vy * dt / 1000;
             var noviy = this.centary + pomak;
@@ -235,9 +243,9 @@ function Lopta(radijus, centarx, centary, vl) {
                 this.centary += this.vy * (dt-dt1)/1000;        
                 this.centarx += this.vx * dt/1000;
                 flag = true;
+                zvuk1();
             }
         }
-        
         
         return flag;
     }
@@ -350,6 +358,7 @@ Objekt.prototype.interakcija = function(lopta, dt) {
             lopta.centary += (dt-dt1) / 1000 * lopta.vy;
                 
             this.ukloni_objekt();
+            zvuk3();
             return true;
         }
     }
@@ -366,6 +375,7 @@ Objekt.prototype.interakcija = function(lopta, dt) {
             lopta.centary += dt / 1000 * lopta.vy;
                 
             this.ukloni_objekt();
+            zvuk3();
             return true;
         }
     }
@@ -382,6 +392,7 @@ Objekt.prototype.interakcija = function(lopta, dt) {
             lopta.centary += dt / 1000 * lopta.vy;
                 
             this.ukloni_objekt();
+            zvuk3();
             return true;
         }
     }
@@ -399,6 +410,7 @@ Objekt.prototype.interakcija = function(lopta, dt) {
             lopta.centary += (dt-dt1) / 1000 * lopta.vy;
                 
             this.ukloni_objekt();
+            zvuk3();
             return true;
         }
     }
@@ -424,6 +436,7 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         lopta.centary += (dt-dt1) / 1000 * lopta.vy;
             
         this.ukloni_objekt();
+        zvuk3();
         return true;
     }
         
@@ -448,6 +461,7 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         lopta.centary += (dt-dt1) / 1000 * lopta.vy;
             
         this.ukloni_objekt();
+        zvuk3();
         return true;
     }
         
@@ -472,6 +486,7 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         lopta.centary += (dt-dt1) / 1000 * lopta.vy;
             
         this.ukloni_objekt();
+        zvuk3();
         return true;
     }
         
@@ -496,6 +511,7 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         lopta.centary += (dt-dt1) / 1000 * lopta.vy;
             
         this.ukloni_objekt();
+        zvuk3();
         return true;
     }
         
@@ -598,6 +614,7 @@ function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
                 //lopta.vy *= -1;
                 lopta.centary += (dt-dt1) / 1000 * lopta.vy;
                 lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
+                zvuk2();
                 return true;
             }
         }
@@ -612,6 +629,7 @@ function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
                 lopta.vx *= -1;
                 lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
                 lopta.centary += dt / 1000 * lopta.vy;
+                zvuk2();
                 return true;
             }
         }
@@ -626,6 +644,7 @@ function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
                 lopta.vx *= -1;
                 lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
                 lopta.centary += dt / 1000 * lopta.vy;
+                zvuk2();
                 return true;
             }
         }
@@ -650,6 +669,7 @@ function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
             lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
             lopta.centary += (dt-dt1) / 1000 * lopta.vy;
             
+            zvuk2();
             return true;
         }
         
@@ -673,6 +693,7 @@ function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
             lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
             lopta.centary += (dt-dt1) / 1000 * lopta.vy;
             
+            zvuk2();
             return true;
         }
         
@@ -816,4 +837,19 @@ function pritisak_gumba_down(ev) {
     }
 }
 
+function pusti_zvuk(broj) {
+    var count = 0;
+    var br = 10;
+    var polje = [];
+    for (var i = 0; i < br; i++) {
+        polje.push(new Audio('zvuk' + broj + '.mp3'));
+    }
+    
+    function fun() {
+        console.log('stisnuo sam ' + count);
+        polje[count%br].play();
+        count++;
+    }
+    return fun;
+}
 
