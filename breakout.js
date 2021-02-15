@@ -14,38 +14,70 @@ $('document').ready(function() {
     var yy = [22];
     var xc = [0], yc = [0];
     
-    set_up_game();
+    set_up_game(2);
 })
 
-function set_up_game() {
+function set_up_game(level) {
     dt = 20;
     sirina_zidova = 30;
     
-    zidovi = new Zidovi(sirina_zidova, '#cccccc');
-
-    console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
+    if (level == 1) {
+        zidovi = new Zidovi(sirina_zidova, '#cccccc');
+        console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
     
+        lopta = new Lopta(10, 575+100, 640-19, 500);
+        //Lopta(radijus, centarx, centary, vl)
+        lopta.postavi_brzinu(-20, 0);
     
-    lopta = new Lopta(10, 575+100, 640-19, 500);
-    //Lopta(radijus, centarx, centary, vl)
-    lopta.postavi_brzinu(-20, 0);
+        reket = new Reket(500, 650, 600, 100, 20, 'blue', 25);
+        //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
     
-    reket = new Reket(500, 650, 600, 100, 20, 'blue', 25);
-    //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
+        lopta.postavi_na_reket(reket);
     
-    lopta.postavi_na_reket(reket);
+        list = true;
+        dest = true;
     
-    list = true;
-    dest = true;
+        objekti = [];
+        dodaj_red_objekata(143, 100, 10, 80, 40, 'red', 10, objekti);
+        dodaj_red_objekata(143, 150, 10, 80, 40, 'yellow', 10, objekti);
+        dodaj_red_objekata(143, 200, 10, 80, 40, '#246cf2', 10, objekti);
+        dodaj_red_objekata(143, 250, 10, 80, 40, '#ce23e0', 10, objekti);
+        dodaj_red_objekata(143, 300, 10, 80, 40, 'green', 10, objekti);
+        //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti)
+    } else if (level == 2) {
+        zidovi = new Zidovi(sirina_zidova, '#cccccc');
+        console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
     
-    objekti = [];
-    dodaj_red_objekata(143, 100, 10, 80, 40, 'red', 10, objekti);
-    dodaj_red_objekata(143, 150, 10, 80, 40, 'yellow', 10, objekti);
-    dodaj_red_objekata(143, 200, 10, 80, 40, '#246cf2', 10, objekti);
-    dodaj_red_objekata(143, 250, 10, 80, 40, '#ce23e0', 10, objekti);
-    dodaj_red_objekata(143, 300, 10, 80, 40, 'green', 10, objekti);
-    //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti)
+        lopta = new Lopta(10, 575+100, 640-19, 500);
+        //Lopta(radijus, centarx, centary, vl)
+        lopta.postavi_brzinu(-20, 0);
     
+        reket = new Reket(500, 650, 600, 100, 20, 'blue', 25);
+        //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
+    
+        lopta.postavi_na_reket(reket);
+        lopta.randomfl = false;
+    
+        list = true;
+        dest = true;
+    
+        objekti = [];
+        dodaj_red_objekata(103, 100, 10, 30, 16, 'red', 9, objekti);
+        dodaj_red_objekata(683, 100, 10, 30, 16, 'red', 9, objekti);
+        
+        dodaj_red_objekata(103, 125, 10, 30, 16, 'yellow', 9, objekti);
+        dodaj_red_objekata(683, 125, 10, 30, 16, 'yellow', 9, objekti);
+        
+        dodaj_red_objekata(103, 150, 10, 30, 16, '#246cf2', 9, objekti);
+        dodaj_red_objekata(683, 150, 10, 30, 16, '#246cf2', 9, objekti);
+        
+        dodaj_red_objekata(103, 175, 10, 30, 16, '#ce23e0', 9, objekti);
+        dodaj_red_objekata(683, 175, 10, 30, 16, '#ce23e0', 9, objekti);
+        
+        dodaj_red_objekata(103, 200, 10, 30, 16, 'green', 9, objekti);
+        dodaj_red_objekata(683, 200, 10, 30, 16, 'green', 9, objekti);
+        //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti)
+    }
     
     id = setInterval(engine, dt);
     console.log('POSTAVIO sam interval');
@@ -127,6 +159,7 @@ function Lopta(radijus, centarx, centary, vl) {
     this.vx = 0;
     this.vy = 0;
     this.vl = vl;
+    this.randomfl = true; // za true random ispaljivanje, za false ravno ispaljivanje
     
     this.el = $("<div></div>");
     this.el.attr('id', 'lopta');
@@ -142,7 +175,7 @@ function Lopta(radijus, centarx, centary, vl) {
     this.random_brzina = function() {
         var max_otklon = 45; // maksimalni otklon od vertikale u stupnjevima
         var fii = (Math.random() * 2 - 1) * max_otklon / 180 * Math.PI;
-        //fii = 0;
+        if (!this.randomfl) fii = 0;
         this.vx = Math.sin(fii) * vl;
         this.vy = -1 * Math.cos(fii) * vl;
         console.log('fi je ' + fii + ' / ' + this.vx + ' ' + this.vy);
@@ -819,7 +852,7 @@ function pritisak_gumba_down(ev) {
         case "KeyS":
             if (!gamefl) {
                 $('#prostor').empty();
-                set_up_game();
+                set_up_game(1);
                 //id = setInterval(engine, dt);
                 console.log('POSTAVIO sam interval');
                 gamefl = true;
