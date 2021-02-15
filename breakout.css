@@ -1,0 +1,40 @@
+div#prostor {
+    width: 1100px;
+    height: 700px;
+    background-color: #333333;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(1100, 1px);
+    grid-template-rows: repeat(700, 1px);
+    gap: 0px;
+}
+
+#element_1k0 {
+    grid-row: 300 / span 30;
+    grid-column: 1080 / span 50;
+}
+
+#lopta {
+    background-color: yellow;
+    clip-path: circle(50% at 50% 50%);
+}
+
+#kraj {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    height: 300px;
+    width: 400px;
+    background-color: green;
+    color: white;
+    font-family: sans-serif;
+    position: relative;
+    /*top: 200px;
+    left: 690px;*/
+    font-size: 20px;
+}
+
+#poruka1 {
+    font-size: 30px;
+}
