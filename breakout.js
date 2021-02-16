@@ -8,6 +8,7 @@ $('document').ready(function() {
     gamefl = true;
     gameoverfl = false;
     novi_level = false;
+    brreflektora = 0;
 
     document.addEventListener("keydown", pritisak_gumba_down);
     document.addEventListener("keyup", pritisak_gumba_up);
@@ -35,9 +36,9 @@ function set_up_game(level) {
         zidovi = new Zidovi(sirina_zidova, '#cccccc');
         console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
     
-        lopta = new Lopta(10, 575+100, 640-19, 500);
+        lopta = new Lopta(10, 300-106.066-50, 300-0, 500);
         //Lopta(radijus, centarx, centary, vl)
-        lopta.postavi_brzinu(-20, 0);
+        lopta.postavi_brzinu(20, 0);
     
         reket = new Reket(500, 650, 600, 100, 20, 'blue', 25);
         //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
@@ -48,14 +49,24 @@ function set_up_game(level) {
         dest = true;
     
         objekti = [];
-        //objekti.push(new Objekt(300, 300, 150, 150, 'blue'));
         
+        if (false) {
+            objekti.push(new Objekt(200, 500, 150, 20, 'blue', 45));
+            objekti[0].tvrdi = true;
+        }
+        
+        if (true) {
         dodaj_red_objekata(143, 100, 10, 80, 40, 'red', 10, objekti);
         dodaj_red_objekata(143, 150, 10, 80, 40, 'yellow', 10, objekti);
         dodaj_red_objekata(143, 200, 10, 80, 40, '#246cf2', 10, objekti);
         dodaj_red_objekata(143, 250, 10, 80, 40, '#ce23e0', 10, objekti);
         dodaj_red_objekata(143, 300, 10, 80, 40, 'green', 10, objekti);
         //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti)
+        }
+        
+        for (var i = 0; i < objekti.length; i++) {
+            if (objekti[i].tvrdi) brreflektora++;
+        }
         
     } else if (level == 2) {
         zidovi = new Zidovi(sirina_zidova, '#cccccc');
@@ -90,6 +101,10 @@ function set_up_game(level) {
         dodaj_red_objekata(103, 200, 10, 30, 16, 'green', 9, objekti);
         dodaj_red_objekata(683, 200, 10, 30, 16, 'green', 9, objekti);
         //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti)
+        
+        for (var i = 0; i < objekti.length; i++) {
+            if (objekti[i].tvrdi) brreflektora++;
+        }
     }
     
     id = setInterval(engine, dt);
@@ -106,7 +121,7 @@ function engine() {
         if (reket.interakcija(lopta, dt))  flag = false;
         
         var dulj = objekti.length;
-        if (dulj == 0) {
+        if (dulj == brreflektora) {
             novi_level = true;
             clearInterval(id);
             zavrsi_gem(1);
@@ -116,7 +131,7 @@ function engine() {
             var obje = objekti[i];
             if (obje.interakcija(lopta, dt)) {
                 flag = false;
-                objekti.splice(i, 1);
+                if (!obje.aktivan) objekti.splice(i, 1);
             }
         }
         
@@ -174,7 +189,7 @@ function dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, ob
 // dodaje n objekata ako stanu na ekran, ako ne onda maksimalan broj koji stane
     var br = 0;
     for (var i = pocetnix; i+sirina/2 < parseInt($('#prostor').css('width')); i += sirina + udaljenost) {
-        objekti.push(new Objekt(i, y, sirina, visina, boja));
+        objekti.push(new Objekt(i, y, sirina, visina, boja, 0));
         //objekt(centarx, centary, sirina, visina, boja)
         br++;
         if (br == n) break;
@@ -384,20 +399,34 @@ function transform2(x, y, xc, yc, fi) {
     y[0] = xc[0] * Math.sin(fi)  +  yc[0] * Math.cos(fi);
 }
 
-function Objekt(centarx, centary, sirina, visina, boja) {
+function Objekt(centarx, centary, sirina, visina, boja, fi) {
 // konstruktor objekta-mete koju gadamo. prva cetiri parametra zadaju polozaj i dimenzije objekta    
-    this.centarx = centarx;
-    this.centary = centary;
+// fi je kut nagiba objekta, za strogo nula imamo klasicni objekt
+    this.id = nacrtaj_pravokutnik(centarx, centary, sirina, visina, boja, fi);
+    if (fi === 0) {
+        this.centarx = centarx;
+        this.centary = centary;
+    } else {
+        var t1 = [centarx]; var t2 = [centary]; var t3 = [0]; var t4 = [0];
+        transform1(t1, t2, t3, t4, fi / 180 * Math.PI);
+        this.centarx = t3[0];
+        this.centary = t4[0];
+        console.log('stare koordinate su' + centarx + ', ' + centary);
+        console.log('nove  koordinate su' + this.centarx + ', ' + this.centary);
+    }
     this.sirina = sirina;
     this.visina = visina;
-    this.id = nacrtaj_pravokutnik(centarx, centary, sirina, visina, boja);
     this.aktivan = true; // za false objekt ne postoji
+    this.tvrdi = false; // za true je objekt fiksan i ne moze ga lopta ponistiti
+    this.fi = fi/180 * Math.PI;
 }
 
 Objekt.prototype.ukloni_objekt = function() {
     var v = '#element_' + this.id;
-    $(v).remove();
-    this.aktivan = false;
+    if (!this.tvrdi) {
+        $(v).remove();
+        this.aktivan = false;
+    }
 }
 
 Objekt.prototype.interakcija = function(lopta, dt) {
@@ -406,183 +435,237 @@ Objekt.prototype.interakcija = function(lopta, dt) {
 // ova metoda koristi realisticni model zakrivljenog kruznog luka za proracun kuta odbijanja
     if (!this.aktivan) return false;
         
-    var loptax = lopta.centarx;
-    var loptay = lopta.centary;
     var radijus = lopta.radijus;
-    var novax = loptax + lopta.vx * dt / 1000;
-    var novay = loptay + lopta.vy * dt / 1000;
+    
+    if (this.fi === 0) {
+        var loptavx = lopta.vx;
+        var loptavy = lopta.vy;
+        var loptax = lopta.centarx;
+        var loptay = lopta.centary;
+        var novax = loptax + loptavx * dt / 1000;
+        var novay = loptay + loptavy * dt / 1000;
+    } else {
+        var vx = [lopta.vx]; var vy = [lopta.vy];
+        var vxc = [0]; var vyc = [0];
+        transform1(vx, vy, vxc, vyc, this.fi);
+        var loptavx = vxc[0];
+        var loptavy = vyc[0];
+        vx = [lopta.centarx]; vy = [lopta.centary];
+        transform1(vx, vy, vxc, vyc, this.fi);
+        var loptax = vxc[0];
+        var loptay = vyc[0];
+        var novax = loptax + loptavx * dt / 1000;
+        var novay = loptay + loptavy * dt / 1000;
+    }
         
-    if (lopta.vy > 0 && novay < this.centary && novay + radijus > this.centary - this.visina/2) {
+    if (loptavy > 0 && novay < this.centary && novay + radijus > this.centary - this.visina/2) {
         if (novax >= this.centarx - this.sirina / 2 && novax <= this.centarx + this.sirina / 2) {
         // odbijanje od gornje plohe
             var d1 = this.centary - this.visina/2 - loptay - radijus;
-            var dt1 = d1 / lopta.vy * 1000;
+            var dt1 = d1 / loptavy * 1000;
                 
-            lopta.centary += dt1 / 1000 * lopta.vy;
-            lopta.centarx += dt / 1000 * lopta.vx;
+            loptay += dt1 / 1000 * loptavy;
+            loptax += dt / 1000 * loptavx;
                 
-            lopta.vy *= -1;
-            lopta.centary += (dt-dt1) / 1000 * lopta.vy;
-                
+            loptavy *= -1;
+            loptay += (dt-dt1) / 1000 * loptavy;
+            console.log('ODBIJENO od gornje stranice');        
             this.ukloni_objekt();
             zvuk3();
+            vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
+            
             return true;
         }
     }
         
-    if (lopta.vx > 0 && novax < this.centarx && novax + radijus > this.centarx - this.sirina/2) {
+    if (loptavx > 0 && novax < this.centarx && novax + radijus > this.centarx - this.sirina/2) {
         if (novay >= this.centary - this.visina / 2 && novay <= this.centary + this.visina / 2) {
         // odbijanje od lijeve plohe
             var d1 = this.centarx - this.sirina/2 - loptax - radijus;
-            var dt1 = d1 / lopta.vx * 1000;
+            var dt1 = d1 / loptavx * 1000;
                 
-            lopta.centarx += dt1 / 1000 * lopta.vx;
-            lopta.vx *= -1;
-            lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
-            lopta.centary += dt / 1000 * lopta.vy;
+            loptax += dt1 / 1000 * loptavx;
+            loptavx *= -1;
+            
+            loptax += (dt-dt1) / 1000 * loptavx;
+            loptay += dt / 1000 * loptavy;
                 
             this.ukloni_objekt();
             zvuk3();
+            vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
+            console.log('ODBIJENO od lijeve stranice');    
             return true;
         }
     }
         
-    if (lopta.vx < 0 && novax > this.centarx && novax - radijus < this.centarx + this.sirina/2) {
+    if (loptavx < 0 && novax > this.centarx && novax - radijus < this.centarx + this.sirina/2) {
         if (novay >= this.centary - this.visina / 2 && novay <= this.centary + this.visina / 2) {
         // odbijanje od desne plohe
             var d1 = loptax - radijus - this.centarx - this.sirina/2;
-            var dt1 = -1 * d1 / lopta.vx * 1000;
+            var dt1 = -1 * d1 / loptavx * 1000;
                 
-            lopta.centarx += dt1 / 1000 * lopta.vx;
-            lopta.vx *= -1;
-            lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
-            lopta.centary += dt / 1000 * lopta.vy;
-                
+            loptax += dt1 / 1000 * loptavx;
+            loptavx *= -1;
+            loptax += (dt-dt1) / 1000 * loptavx;
+            loptay += dt / 1000 * loptavy;
+            console.log('ODBIJENO od desne stranice');        
             this.ukloni_objekt();
             zvuk3();
+            
+            vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
             return true;
         }
     }
         
-    if (lopta.vy < 0 && novay > this.centary && novay - radijus < this.centary + this.visina/2) {
+    if (loptavy < 0 && novay > this.centary && novay - radijus < this.centary + this.visina/2) {
         if (novax >= this.centarx - this.sirina / 2 && novax <= this.centarx + this.sirina / 2) {
         // odbijanje od donje plohe
             var d1 = loptay - radijus - this.centary - this.visina/2;
-            var dt1 = -1 * d1 / lopta.vy * 1000;
+            var dt1 = -1 * d1 / loptavy * 1000;
                 
-            lopta.centary += dt1 / 1000 * lopta.vy;
-            lopta.centarx += dt / 1000 * lopta.vx;
+            loptay += dt1 / 1000 * loptavy;
+            loptax += dt / 1000 * loptavx;
                 
-            lopta.vy *= -1;
-            lopta.centary += (dt-dt1) / 1000 * lopta.vy;
-                
+            loptavy *= -1;
+            loptay += (dt-dt1) / 1000 * loptavy;
+            console.log('ODBIJENO od donje stranice');    
             this.ukloni_objekt();
             zvuk3();
+            
+            vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
             return true;
         }
     }
         
     if (Math.pow(novax-this.centarx+this.sirina/2, 2) + Math.pow(novay-this.centary-this.visina/2, 2) < radijus * radijus) {
         // interakcija sa donjim lijevim kutom
-        var dt1 = vrijeme_udara_u_rub(loptax, loptay, radijus, lopta.vx, lopta.vy, this.centarx-this.sirina/2, this.centary+this.visina/2);
-        lopta.centary += dt1 / 1000 * lopta.vy;
-        lopta.centarx += dt1 / 1000 * lopta.vx;
-        var fi = Math.atan( (lopta.centary-this.centary-this.visina/2)/(this.centarx-this.sirina/2-lopta.centarx) );
+        var dt1 = vrijeme_udara_u_rub(loptax, loptay, radijus, loptavx, loptavy, this.centarx-this.sirina/2, this.centary+this.visina/2);
+        loptay += dt1 / 1000 * loptavy;
+        loptax += dt1 / 1000 * loptavx;
+        var fi = Math.atan( (loptay-this.centary-this.visina/2)/(this.centarx-this.sirina/2-loptax) );
         fi = -1*fi;
         console.log('udario si u lijevi donji rub ' + dt1);
-        console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + lopta.vx + ' / ' + lopta.vy  );
+        console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + loptavx + ' / ' + loptavy  );
             
-        var vx = [lopta.vx], vy = [lopta.vy];
+        var vx = [loptavx], vy = [loptavy];
         var vxc = [0], vyc = [0];
         transform1(vx, vy, vxc, vyc, fi);
         vxc[0] *= -1;
         transform2(vx, vy, vxc, vyc, fi);
-        lopta.vx = vx[0]; lopta.vy = vy[0];
+        loptavx = vx[0]; loptavy = vy[0];
             
-        lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
-        lopta.centary += (dt-dt1) / 1000 * lopta.vy;
+        loptax += (dt-dt1) / 1000 * loptavx;
+        loptay += (dt-dt1) / 1000 * loptavy;
             
         this.ukloni_objekt();
         zvuk3();
+        
+        vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
         return true;
     }
         
     if (Math.pow(novax-this.centarx-this.sirina/2, 2) + Math.pow(novay-this.centary-this.visina/2, 2) < radijus * radijus) {
         // interakcija sa donjim desnim kutom
-        var dt1 = vrijeme_udara_u_rub(loptax, loptay, radijus, lopta.vx, lopta.vy, this.centarx+this.sirina/2, this.centary+this.visina/2);
-        lopta.centary += dt1 / 1000 * lopta.vy;
-        lopta.centarx += dt1 / 1000 * lopta.vx;
-        var fi = Math.atan( (lopta.centary-this.centary-this.visina/2)/(this.centarx+this.sirina/2-lopta.centarx) );
+        var dt1 = vrijeme_udara_u_rub(loptax, loptay, radijus, loptavx, loptavy, this.centarx+this.sirina/2, this.centary+this.visina/2);
+        loptay += dt1 / 1000 * loptavy;
+        loptax += dt1 / 1000 * loptavx;
+        var fi = Math.atan( (loptay-this.centary-this.visina/2)/(this.centarx+this.sirina/2-loptax) );
         fi = -1*fi;
         console.log('udario si u desni donji rub ' + dt1);
-        console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + lopta.vx + ' / ' + lopta.vy  );
+        console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + loptavx + ' / ' + loptavy  );
             
-        var vx = [lopta.vx], vy = [lopta.vy];
+        var vx = [loptavx], vy = [loptavy];
         var vxc = [0], vyc = [0];
         transform1(vx, vy, vxc, vyc, fi);
         vxc[0] *= -1;
         transform2(vx, vy, vxc, vyc, fi);
-        lopta.vx = vx[0]; lopta.vy = vy[0];
+        loptavx = vx[0]; loptavy = vy[0];
             
-        lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
-        lopta.centary += (dt-dt1) / 1000 * lopta.vy;
+        loptax += (dt-dt1) / 1000 * loptavx;
+        loptay += (dt-dt1) / 1000 * loptavy;
             
         this.ukloni_objekt();
         zvuk3();
+        
+        vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
         return true;
     }
         
     if (Math.pow(novax-this.centarx+this.sirina/2, 2) + Math.pow(novay-this.centary+this.visina/2, 2) < radijus * radijus) {
         // interakcija sa gornjim lijevim kutom
-        var dt1 = vrijeme_udara_u_rub(loptax, loptay, radijus, lopta.vx, lopta.vy, this.centarx-this.sirina/2, this.centary-this.visina/2);
-        lopta.centary += dt1 / 1000 * lopta.vy;
-        lopta.centarx += dt1 / 1000 * lopta.vx;
-        var fi = Math.atan( (lopta.centary-this.centary+this.visina/2)/(this.centarx-this.sirina/2-lopta.centarx) );
+        var dt1 = vrijeme_udara_u_rub(loptax, loptay, radijus, loptavx, loptavy, this.centarx-this.sirina/2, this.centary-this.visina/2);
+        loptay += dt1 / 1000 * loptavy;
+        loptax += dt1 / 1000 * loptavx;
+        var fi = Math.atan( (loptay-this.centary+this.visina/2)/(this.centarx-this.sirina/2-loptax) );
         fi = -1*fi;
         console.log('udario si u lijevi gornji rub ' + dt1);
-        console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + lopta.vx + ' / ' + lopta.vy  );
+        console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + loptavx + ' / ' + loptavy  );
             
-        var vx = [lopta.vx], vy = [lopta.vy];
+        var vx = [loptavx], vy = [loptavy];
         var vxc = [0], vyc = [0];
         transform1(vx, vy, vxc, vyc, fi);
         vxc[0] *= -1;
         transform2(vx, vy, vxc, vyc, fi);
-        lopta.vx = vx[0]; lopta.vy = vy[0];
+        loptavx = vx[0]; loptavy = vy[0];
             
-        lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
-        lopta.centary += (dt-dt1) / 1000 * lopta.vy;
+        loptax += (dt-dt1) / 1000 * loptavx;
+        loptay += (dt-dt1) / 1000 * loptavy;
             
         this.ukloni_objekt();
         zvuk3();
+        
+        vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
         return true;
     }
         
     if (Math.pow(novax-this.centarx-this.sirina/2, 2) + Math.pow(novay-this.centary+this.visina/2, 2) < radijus * radijus) {
         // interakcija sa gornjim desnim kutom
-        var dt1 = vrijeme_udara_u_rub(loptax, loptay, radijus, lopta.vx, lopta.vy, this.centarx+this.sirina/2, this.centary-this.visina/2);
-        lopta.centary += dt1 / 1000 * lopta.vy;
-        lopta.centarx += dt1 / 1000 * lopta.vx;
-        var fi = Math.atan( (lopta.centary-this.centary+this.visina/2)/(this.centarx+this.sirina/2-lopta.centarx) );
+        var dt1 = vrijeme_udara_u_rub(loptax, loptay, radijus, loptavx, loptavy, this.centarx+this.sirina/2, this.centary-this.visina/2);
+        loptay += dt1 / 1000 * loptavy;
+        loptax += dt1 / 1000 * loptavx;
+        var fi = Math.atan( (loptay-this.centary+this.visina/2)/(this.centarx+this.sirina/2-loptax) );
         fi = -1*fi;
         console.log('udario si u lijevi gornji rub ' + dt1);
-        console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + lopta.vx + ' / ' + lopta.vy  );
+        console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + loptavx + ' / ' + loptavy  );
             
-        var vx = [lopta.vx], vy = [lopta.vy];
+        var vx = [loptavx], vy = [loptavy];
         var vxc = [0], vyc = [0];
         transform1(vx, vy, vxc, vyc, fi);
         vxc[0] *= -1;
         transform2(vx, vy, vxc, vyc, fi);
-        lopta.vx = vx[0]; lopta.vy = vy[0];
+        loptavx = vx[0]; loptavy = vy[0];
             
-        lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
-        lopta.centary += (dt-dt1) / 1000 * lopta.vy;
+        loptax += (dt-dt1) / 1000 * loptavx;
+        loptay += (dt-dt1) / 1000 * loptavy;
             
         this.ukloni_objekt();
         zvuk3();
+        
+        vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
         return true;
     }
         
     return false;  
+}
+
+function vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, fi) {
+    if (fi === 0) {
+        lopta.vx = loptavx;
+        lopta.vy = loptavy;
+        lopta.centarx = loptax;
+        lopta.centary = loptay;
+    } else {
+        var vxc = [loptavx]; var vyc = [loptavy];
+        var vx = [0]; var vy = [0];
+        transform2(vx, vy, vxc, vyc, fi);
+        lopta.vx = vx[0];
+        lopta.vy = vy[0];
+                
+        vxc = [loptax]; vyc = [loptay];
+        transform2(vx, vy, vxc, vyc, fi);
+        lopta.centarx = vx[0];
+        lopta.centary = vy[0];
+    }
 }
 
 function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
@@ -808,21 +891,21 @@ function Zidovi(sirina, boja) {
     var centary = Math.floor(vis/2);
                                     this.lijevi = sirina;
     console.log('centar je ' + centarx + ' / ' + centary);
-    nacrtaj_pravokutnik(centarx, centary, sirina, vis, boja);
+    nacrtaj_pravokutnik(centarx, centary, sirina, vis, boja, 0);
     
     //gornji zid
     centarx = Math.floor(sir/2);
     centary = Math.floor(sirina/2);
                                     this.gornji = sirina;
     console.log('centar je ' + centarx + ' / ' + centary);
-    nacrtaj_pravokutnik(centarx, centary, sir, sirina, boja);
+    nacrtaj_pravokutnik(centarx, centary, sir, sirina, boja, 0);
     
     //desni zid
     centarx = Math.floor(sir - sirina/2);
     centary = Math.floor(vis/2);
                                     this.desni = sir - sirina;
     console.log('centar je ' + centarx + ' / ' + centary);
-    nacrtaj_pravokutnik(centarx, centary, sirina, vis, boja);
+    nacrtaj_pravokutnik(centarx, centary, sirina, vis, boja, 0);
     
                                     this.donji = -1;
     if (false) {  // za true crta donji zid
@@ -830,11 +913,11 @@ function Zidovi(sirina, boja) {
         centary = Math.floor(vis - sirina/2);
                                     this.donji = vis - sirina;
         console.log('centar je ' + centarx + ' / ' + centary);
-        nacrtaj_pravokutnik(centarx, centary, sir, sirina, boja);
+        nacrtaj_pravokutnik(centarx, centary, sir, sirina, boja, 0);
     }
 }
 
-function nacrtaj_pravokutnik(centarX, centarY, sirina, visina, boja) {
+function nacrtaj_pravokutnik(centarX, centarY, sirina, visina, boja, fi) {
 // ova funkcija crta pravokutnik na igracku povrsinu. koordinate centarX/Y zadaju poziciju centra elementa   
 // sirina i visina zadaju te velicine u pikselima, boja je string i govori o boji objekta, zadajes je u css formatu npr. '#f12e34' ili 'blue'
     var el = $("<div></div>");
@@ -849,6 +932,7 @@ function nacrtaj_pravokutnik(centarX, centarY, sirina, visina, boja) {
     if (kor2 < 1) kor2 = 1;
     el.css('grid-column', kor1.toString() + ' / span ' + sirina.toString());
     el.css('grid-row', kor2.toString() + ' / span ' + visina.toString());
+    if (fi !== 0)  el.css('transform', 'rotate(' + fi.toString() + 'deg)');  
     
     $('#prostor').append(el);
     //console.log('upravo sam dodao pravokutnik ' + el.attr('id'));
