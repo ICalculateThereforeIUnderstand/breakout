@@ -21,7 +21,7 @@ $('document').ready(function() {
     var yy = [22];
     var xc = [0], yc = [0];
     
-    set_up_game(1);
+    set_up_game(level);
 })
 
 function set_up_game(level) {
@@ -56,12 +56,12 @@ function set_up_game(level) {
         }
         
         if (true) {
-        dodaj_red_objekata(143, 100, 10, 80, 40, 'red', 10, objekti);
-        dodaj_red_objekata(143, 150, 10, 80, 40, 'yellow', 10, objekti);
-        dodaj_red_objekata(143, 200, 10, 80, 40, '#246cf2', 10, objekti);
-        dodaj_red_objekata(143, 250, 10, 80, 40, '#ce23e0', 10, objekti);
-        dodaj_red_objekata(143, 300, 10, 80, 40, 'green', 10, objekti);
-        //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti)
+        dodaj_red_objekata(143, 100, 10, 80, 40, 'red', 10, objekti, 0);
+        dodaj_red_objekata(143, 150, 10, 80, 40, 'yellow', 10, objekti, 0);
+        dodaj_red_objekata(143, 200, 10, 80, 40, '#246cf2', 10, objekti, 0);
+        dodaj_red_objekata(143, 250, 10, 80, 40, '#ce23e0', 10, objekti, 0);
+        dodaj_red_objekata(143, 300, 10, 80, 40, 'green', 10, objekti, 0);
+        //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti, 0)
         }
         
         for (var i = 0; i < objekti.length; i++) {
@@ -80,27 +80,387 @@ function set_up_game(level) {
         //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
     
         lopta.postavi_na_reket(reket);
-        lopta.randomfl = false;
+        //lopta.randomfl = false;
     
         list = true;
         dest = true;
     
         objekti = [];
-        dodaj_red_objekata(103, 100, 10, 30, 16, 'red', 9, objekti);
-        dodaj_red_objekata(683, 100, 10, 30, 16, 'red', 9, objekti);
+        dodaj_red_objekata(103, 100, 10, 30, 16, 'red', 9, objekti, 0);
+        dodaj_red_objekata(683, 100, 10, 30, 16, 'red', 9, objekti, 0);
         
-        dodaj_red_objekata(103, 125, 10, 30, 16, 'yellow', 9, objekti);
-        dodaj_red_objekata(683, 125, 10, 30, 16, 'yellow', 9, objekti);
+        dodaj_red_objekata(103, 125, 10, 30, 16, 'yellow', 9, objekti, 0);
+        dodaj_red_objekata(683, 125, 10, 30, 16, 'yellow', 9, objekti, 0);
         
-        dodaj_red_objekata(103, 150, 10, 30, 16, '#246cf2', 9, objekti);
-        dodaj_red_objekata(683, 150, 10, 30, 16, '#246cf2', 9, objekti);
+        dodaj_red_objekata(103, 150, 10, 30, 16, '#246cf2', 9, objekti, 0);
+        dodaj_red_objekata(683, 150, 10, 30, 16, '#246cf2', 9, objekti, 0);
         
-        dodaj_red_objekata(103, 175, 10, 30, 16, '#ce23e0', 9, objekti);
-        dodaj_red_objekata(683, 175, 10, 30, 16, '#ce23e0', 9, objekti);
+        dodaj_red_objekata(103, 175, 10, 30, 16, '#ce23e0', 9, objekti, 0);
+        dodaj_red_objekata(683, 175, 10, 30, 16, '#ce23e0', 9, objekti, 0);
         
-        dodaj_red_objekata(103, 200, 10, 30, 16, 'green', 9, objekti);
-        dodaj_red_objekata(683, 200, 10, 30, 16, 'green', 9, objekti);
-        //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti)
+        dodaj_red_objekata(103, 200, 10, 30, 16, 'green', 9, objekti, 0);
+        dodaj_red_objekata(683, 200, 10, 30, 16, 'green', 9, objekti, 0);
+        //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti, 0)
+        
+        for (var i = 0; i < objekti.length; i++) {
+            if (objekti[i].tvrdi) brreflektora++;
+        }
+    } else if (level == 3) {
+        zidovi = new Zidovi(sirina_zidova, '#cccccc');
+        console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
+    
+        lopta = new Lopta(10, 300-106.066-50, 300-0, 500);
+        //Lopta(radijus, centarx, centary, vl)
+        lopta.postavi_brzinu(20, 0);
+    
+        reket = new Reket(500, 650, 600, 100, 20, 'blue', 25);
+        //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
+    
+        lopta.postavi_na_reket(reket);
+    
+        list = true;
+        dest = true;
+    
+        objekti = [];
+        
+        if (false) {
+            objekti.push(new Objekt(200, 500, 150, 20, 'blue', 45));
+            objekti[0].tvrdi = true;
+        }
+        
+        if (true) {
+        dodaj_red_objekata(143, 100, 10, 80, 40, 'red', 10, objekti, 30);
+        dodaj_red_objekata(143, 150, 10, 80, 40, 'yellow', 10, objekti, 30);
+        dodaj_red_objekata(143, 200, 10, 80, 40, '#246cf2', 10, objekti, 30);
+        dodaj_red_objekata(143, 250, 10, 80, 40, '#ce23e0', 10, objekti, 30);
+        dodaj_red_objekata(143, 300, 10, 80, 40, 'green', 10, objekti, 30);
+        //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti, fi)
+        }
+        
+        for (var i = 0; i < objekti.length; i++) {
+            if (objekti[i].tvrdi) brreflektora++;
+        }
+    } else if (level == 4) {
+        zidovi = new Zidovi(sirina_zidova, '#cccccc');
+        console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
+    
+        lopta = new Lopta(10, 300-106.066-50, 300-0, 500);
+        //Lopta(radijus, centarx, centary, vl)
+        lopta.postavi_brzinu(20, 0);
+    
+        reket = new Reket(500, 650, 600, 100, 20, 'blue', 25);
+        //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
+    
+        lopta.postavi_na_reket(reket);
+    
+        list = true;
+        dest = true;
+    
+        objekti = [];
+        
+        if (true) {
+            objekti.push(new Objekt(555, 400, 120, 10, 'grey', 45));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[0].tvrdi = true;
+        }
+        
+        if (true) {
+        
+            
+        dodaj_red_objekata(143, 110, 7, 35, 15, 'red', 10, objekti, 0);
+        dodaj_red_objekata(590, 110, 7, 35, 15, 'red', 10, objekti, 0);
+        dodaj_stupac_objekata(143, 132, 7, 35, 15, 'red', 6, objekti, 0);    
+        dodaj_stupac_objekata(968, 132, 7, 35, 15, 'red', 6, objekti, 0);
+        
+        dodaj_red_objekata(185, 132, 7, 35, 15, 'yellow', 9, objekti, 0);
+        dodaj_red_objekata(590, 132, 7, 35, 15, 'yellow', 9, objekti, 0);
+        dodaj_stupac_objekata(185, 154, 7, 35, 15, 'yellow', 5, objekti, 0);    
+        dodaj_stupac_objekata(926, 154, 7, 35, 15, 'yellow', 5, objekti, 0);
+        
+        dodaj_red_objekata(227, 154, 7, 35, 15, '#246cf2', 8, objekti, 0);
+        dodaj_red_objekata(590, 154, 7, 35, 15, '#246cf2', 8, objekti, 0);
+        dodaj_stupac_objekata(227, 176, 7, 35, 15, '#246cf2', 4, objekti, 0);    
+        dodaj_stupac_objekata(884, 176, 7, 35, 15, '#246cf2', 4, objekti, 0);
+        
+        dodaj_red_objekata(269, 176, 7, 35, 15, '#ce23e0', 7, objekti, 0);
+        dodaj_red_objekata(590, 176, 7, 35, 15, '#ce23e0', 7, objekti, 0);
+        dodaj_stupac_objekata(269, 198, 7, 35, 15, '#ce23e0', 3, objekti, 0);    
+        dodaj_stupac_objekata(842, 198, 7, 35, 15, '#ce23e0', 3, objekti, 0);
+        
+        dodaj_red_objekata(311, 198, 7, 35, 15, '#3bf54a', 6, objekti, 0);
+        dodaj_red_objekata(590, 198, 7, 35, 15, '#3bf54a', 6, objekti, 0);
+        dodaj_stupac_objekata(311, 220, 7, 35, 15, '#3bf54a', 2, objekti, 0);    
+        dodaj_stupac_objekata(800, 220, 7, 35, 15, '#3bf54a', 2, objekti, 0);
+        
+        //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti, fi)
+        //dodaj_stupac_objekata(x, pocetniy, udaljenost, sirina, visina, boja, n, objekti, fi)
+        }
+        
+        for (var i = 0; i < objekti.length; i++) {
+            if (objekti[i].tvrdi) brreflektora++;
+        }
+    } else if (level == 5) {
+        zidovi = new Zidovi(sirina_zidova, '#cccccc');
+        console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
+    
+        lopta = new Lopta(10, 300-106.066-50, 300-0, 500);
+        //Lopta(radijus, centarx, centary, vl)
+        lopta.postavi_brzinu(20, 0);
+    
+        reket = new Reket(500, 650, 600, 100, 20, 'blue', 25);
+        //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
+    
+        lopta.postavi_na_reket(reket);
+    
+        list = true;
+        dest = true;
+    
+        objekti = [];
+        
+        if (true) {
+            objekti.push(new Objekt(555, 400, 120, 10, 'grey', 45));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[0].tvrdi = true;
+        }
+        
+        if (true) {
+        
+            
+        dodaj_red_objekata(143, 110, 7, 35, 15, 'red', 10, objekti, 30);
+        dodaj_red_objekata(590, 110, 7, 35, 15, 'red', 10, objekti, 30);
+        dodaj_stupac_objekata(143, 132, 7, 35, 15, 'red', 6, objekti, 30);    
+        dodaj_stupac_objekata(968, 132, 7, 35, 15, 'red', 6, objekti, 30);
+        
+        dodaj_red_objekata(185, 132, 7, 35, 15, 'yellow', 9, objekti, 30);
+        dodaj_red_objekata(590, 132, 7, 35, 15, 'yellow', 9, objekti, 30);
+        dodaj_stupac_objekata(185, 154, 7, 35, 15, 'yellow', 5, objekti, 30);    
+        dodaj_stupac_objekata(926, 154, 7, 35, 15, 'yellow', 5, objekti, 30);
+        
+        dodaj_red_objekata(227, 154, 7, 35, 15, '#246cf2', 8, objekti, 30);
+        dodaj_red_objekata(590, 154, 7, 35, 15, '#246cf2', 8, objekti, 30);
+        dodaj_stupac_objekata(227, 176, 7, 35, 15, '#246cf2', 4, objekti, 30);    
+        dodaj_stupac_objekata(884, 176, 7, 35, 15, '#246cf2', 4, objekti, 30);
+        
+        dodaj_red_objekata(269, 176, 7, 35, 15, '#ce23e0', 7, objekti, 30);
+        dodaj_red_objekata(590, 176, 7, 35, 15, '#ce23e0', 7, objekti, 30);
+        dodaj_stupac_objekata(269, 198, 7, 35, 15, '#ce23e0', 3, objekti, 30);    
+        dodaj_stupac_objekata(842, 198, 7, 35, 15, '#ce23e0', 3, objekti, 30);
+        
+        dodaj_red_objekata(311, 198, 7, 35, 15, '#3bf54a', 6, objekti, 30);
+        dodaj_red_objekata(590, 198, 7, 35, 15, '#3bf54a', 6, objekti, 30);
+        dodaj_stupac_objekata(311, 220, 7, 35, 15, '#3bf54a', 2, objekti, 30);    
+        dodaj_stupac_objekata(800, 220, 7, 35, 15, '#3bf54a', 2, objekti, 30);
+        
+        //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti, fi)
+        //dodaj_stupac_objekata(x, pocetniy, udaljenost, sirina, visina, boja, n, objekti, fi)
+        }
+        
+        for (var i = 0; i < objekti.length; i++) {
+            if (objekti[i].tvrdi) brreflektora++;
+        }
+    } else if (level == 6) {
+        zidovi = new Zidovi(sirina_zidova, '#cccccc');
+        console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
+    
+        lopta = new Lopta(10, 300-106.066-50, 300-0, 500);
+        //Lopta(radijus, centarx, centary, vl)
+        lopta.postavi_brzinu(20, 0);
+    
+        reket = new Reket(500, 650, 600, 100, 20, 'blue', 25);
+        //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
+    
+        lopta.postavi_na_reket(reket);
+    
+        list = true;
+        dest = true;
+    
+        objekti = [];
+        
+        if (true) {
+            objekti.push(new Objekt(300, 400, 120, 10, 'grey', 45));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[0].tvrdi = true;
+            objekti.push(new Objekt(790, 400, 120, 10, 'grey', -45));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[1].tvrdi = true;
+        }
+        
+        if (true) {
+        
+        dodaj_red_objekata(220, 110, 7, 35, 15, 'red', 8, objekti, 0);
+        dodaj_red_objekata(580, 110, 7, 35, 15, 'red', 8, objekti, 0);
+        
+        dodaj_red_objekata(220, 132, 7, 35, 15, 'yellow', 8, objekti, 0);
+        dodaj_red_objekata(580, 132, 7, 35, 15, 'yellow', 8, objekti, 0);
+        
+        dodaj_red_objekata(262, 154, 7, 35, 15, '#246cf2', 7, objekti, 0);
+        dodaj_red_objekata(580, 154, 7, 35, 15, '#246cf2', 7, objekti, 0);
+        
+        dodaj_red_objekata(304, 176, 7, 35, 15, '#ce23e0', 6, objekti, 0);
+        dodaj_red_objekata(580, 176, 7, 35, 15, '#ce23e0', 6, objekti, 0);
+        
+        dodaj_red_objekata(346, 198, 7, 35, 15, '#3bf54a', 5, objekti, 0);
+        dodaj_red_objekata(580, 198, 7, 35, 15, '#3bf54a', 5, objekti, 0);
+        
+        dodaj_red_objekata(388, 220, 7, 35, 15, 'red', 4, objekti, 0);
+        dodaj_red_objekata(580, 220, 7, 35, 15, 'red', 4, objekti, 0);
+        
+        dodaj_red_objekata(430, 242, 7, 35, 15, 'yellow', 3, objekti, 0);
+        dodaj_red_objekata(580, 242, 7, 35, 15, 'yellow', 3, objekti, 0);
+        
+        dodaj_red_objekata(472, 264, 7, 35, 15, '#246cf2', 2, objekti, 0);
+        dodaj_red_objekata(580, 264, 7, 35, 15, '#246cf2', 2, objekti, 0);
+        
+        dodaj_red_objekata(514, 286, 7, 35, 15, '#ce23e0', 1, objekti, 0);
+        dodaj_red_objekata(580, 286, 7, 35, 15, '#ce23e0', 1, objekti, 0);
+        
+        //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti, fi)
+        //dodaj_stupac_objekata(x, pocetniy, udaljenost, sirina, visina, boja, n, objekti, fi)
+        }
+        
+        for (var i = 0; i < objekti.length; i++) {
+            if (objekti[i].tvrdi) brreflektora++;
+        }
+    } else if (level == 7) {
+        zidovi = new Zidovi(sirina_zidova, '#cccccc');
+        console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
+    
+        lopta = new Lopta(10, 300-106.066-50, 300-0, 500);
+        //Lopta(radijus, centarx, centary, vl)
+        lopta.postavi_brzinu(20, 0);
+    
+        reket = new Reket(500, 650, 600, 100, 20, 'blue', 25);
+        //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
+    
+        lopta.postavi_na_reket(reket);
+    
+        list = true;
+        dest = true;
+    
+        objekti = [];
+        
+        if (true) {
+            objekti.push(new Objekt(553, 127, 195, 10, '#cccccc', 90));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[0].tvrdi = true;
+            
+            objekti.push(new Objekt(70, 240, 120, 10, '#cccccc', 45));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[1].tvrdi = true;
+            
+            objekti.push(new Objekt(1030, 240, 120, 10, '#cccccc', -45));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[2].tvrdi = true;
+        }
+        
+        if (true) {
+        
+        dodaj_red_objekata(120, 110, 7, 35, 15, 'red', 9, objekti, 0);
+        dodaj_red_objekata(650, 110, 7, 35, 15, 'red', 9, objekti, 0);
+        
+        dodaj_red_objekata(120, 132, 7, 35, 15, 'yellow', 9, objekti, 0);
+        dodaj_red_objekata(650, 132, 7, 35, 15, 'yellow', 9, objekti, 0);
+        
+        dodaj_red_objekata(120, 154, 7, 35, 15, '#246cf2', 9, objekti, 0);
+        dodaj_red_objekata(650, 154, 7, 35, 15, '#246cf2', 9, objekti, 0);
+        
+        dodaj_red_objekata(120, 176, 7, 35, 15, '#ce23e0', 9, objekti, 0);
+        dodaj_red_objekata(650, 176, 7, 35, 15, '#ce23e0', 9, objekti, 0);
+        
+        dodaj_red_objekata(120, 198, 7, 35, 15, '#3bf54a', 9, objekti, 0);
+        dodaj_red_objekata(650, 198, 7, 35, 15, '#3bf54a', 9, objekti, 0);
+        
+        //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti, fi)
+        //dodaj_stupac_objekata(x, pocetniy, udaljenost, sirina, visina, boja, n, objekti, fi)
+        }
+        
+        for (var i = 0; i < objekti.length; i++) {
+            if (objekti[i].tvrdi) brreflektora++;
+        }
+    } else if (level == 8) {
+        zidovi = new Zidovi(sirina_zidova, '#cccccc');
+        console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
+    
+        lopta = new Lopta(10, 560, 40, 500);
+        //Lopta(radijus, centarx, centary, vl)
+        lopta.postavi_brzinu(301, 231);
+    
+        reket = new Reket(500, 650, 600, 100, 20, 'blue', 25);
+        //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
+    
+        lopta.postavi_na_reket(reket);
+    
+        list = true;
+        dest = true;
+    
+        objekti = [];
+        
+        if (true) {
+            objekti.push(new Objekt(500, 80, 150, 10, '#cccccc', 45));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[0].tvrdi = true;
+            
+            objekti.push(new Objekt(600, 80, 150, 10, '#cccccc', -45));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[1].tvrdi = true;
+            
+            objekti.push(new Objekt(507, 230, 130, 10, '#cccccc', -45));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[2].tvrdi = true;
+            
+            objekti.push(new Objekt(593, 230, 130, 10, '#cccccc', 45));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[3].tvrdi = true;
+            
+            objekti.push(new Objekt(550, 245, 110, 10, '#cccccc', 90));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[4].tvrdi = true;
+            
+            objekti.push(new Objekt(120, 490, 100, 10, '#cccccc', -45));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[5].tvrdi = true;
+            
+            objekti.push(new Objekt(980, 490, 100, 10, '#cccccc', 45));
+                           //Objekt(centarx, centary, sirina, visina, boja, fi)
+            objekti[6].tvrdi = true;
+        }
+        
+        if (true) {
+        
+        dodaj_red_objekata(120, 110, 7, 35, 15, 'red', 9, objekti, 0);
+        dodaj_red_objekata(650, 110, 7, 35, 15, 'red', 9, objekti, 0);
+        
+        dodaj_red_objekata(120, 132, 7, 35, 15, 'yellow', 9, objekti, 0);
+        dodaj_red_objekata(650, 132, 7, 35, 15, 'yellow', 9, objekti, 0);
+        
+        dodaj_red_objekata(120, 154, 7, 35, 15, '#246cf2', 9, objekti, 0);
+        dodaj_red_objekata(650, 154, 7, 35, 15, '#246cf2', 9, objekti, 0);
+        
+        dodaj_red_objekata(120, 176, 7, 35, 15, '#ce23e0', 9, objekti, 0);
+        dodaj_red_objekata(650, 176, 7, 35, 15, '#ce23e0', 9, objekti, 0);
+        
+        dodaj_red_objekata(120, 198, 7, 35, 15, '#3bf54a', 9, objekti, 0);
+        dodaj_red_objekata(650, 198, 7, 35, 15, '#3bf54a', 9, objekti, 0);
+        
+        
+        dodaj_red_objekata(120, 110+190, 7, 35, 15, 'red', 9, objekti, 0);
+        dodaj_red_objekata(650, 110+190, 7, 35, 15, 'red', 9, objekti, 0);
+        
+        dodaj_red_objekata(120, 132+190, 7, 35, 15, 'yellow', 9, objekti, 0);
+        dodaj_red_objekata(650, 132+190, 7, 35, 15, 'yellow', 9, objekti, 0);
+        
+        dodaj_red_objekata(120, 154+190, 7, 35, 15, '#246cf2', 9, objekti, 0);
+        dodaj_red_objekata(650, 154+190, 7, 35, 15, '#246cf2', 9, objekti, 0);
+        
+        dodaj_red_objekata(120, 176+190, 7, 35, 15, '#ce23e0', 9, objekti, 0);
+        dodaj_red_objekata(650, 176+190, 7, 35, 15, '#ce23e0', 9, objekti, 0);
+        
+        dodaj_red_objekata(120, 198+190, 7, 35, 15, '#3bf54a', 9, objekti, 0);
+        dodaj_red_objekata(650, 198+190, 7, 35, 15, '#3bf54a', 9, objekti, 0);
+        
+        //dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti, fi)
+        //dodaj_stupac_objekata(x, pocetniy, udaljenost, sirina, visina, boja, n, objekti, fi)
+        }
         
         for (var i = 0; i < objekti.length; i++) {
             if (objekti[i].tvrdi) brreflektora++;
@@ -183,13 +543,16 @@ function zavrsi_gem(flag) {
     $('#prostor').append(el);
 }
 
-function dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti) {
+function dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, objekti, fi) {
 // ova funkcija u polje objekti dodaje red n objekata zadane boje, sirine i visine
 // pocetnix je centarx koordinata prvog objekta, y je centary koordinata objekata, a n je horizontalna x-udaljenost u pikselima izmedu objekata
 // dodaje n objekata ako stanu na ekran, ako ne onda maksimalan broj koji stane
+// kut fi je maksimalan raspon random kuta, od -fi do fi, pojedinog objekta. ako stavis nulu, 
+// tada dobijes klasicni postav sa svim paralelnim objektima
     var br = 0;
     for (var i = pocetnix; i+sirina/2 < parseInt($('#prostor').css('width')); i += sirina + udaljenost) {
-        objekti.push(new Objekt(i, y, sirina, visina, boja, 0));
+        var kut = (Math.random() * 2 - 1) * fi;
+        objekti.push(new Objekt(i, y, sirina, visina, boja, kut));
         //objekt(centarx, centary, sirina, visina, boja)
         br++;
         if (br == n) break;
@@ -197,6 +560,23 @@ function dodaj_red_objekata(pocetnix, y, udaljenost, sirina, visina, boja, n, ob
     
     
     
+    //console.log(parseInt($('#prostor').css('width')));
+}
+
+function dodaj_stupac_objekata(x, pocetniy, udaljenost, sirina, visina, boja, n, objekti, fi) {
+// ova funkcija u polje objekti dodaje stupac n objekata zadane boje, sirine i visine
+// x je centarx koordinata prvog objekta, pocetniy je centary koordinata objekata, a udaljenost je vertikalna y-udaljenost u pikselima izmedu objekata
+// dodaje n objekata ako stanu na ekran, ako ne onda maksimalan broj koji stane
+// kut fi je maksimalan raspon random kuta, od -fi do fi, pojedinog objekta. ako stavis nulu, 
+// tada dobijes klasicni postav sa svim paralelnim objektima
+    var br = 0;
+    for (var i = pocetniy; i+visina/2 < parseInt($('#prostor').css('height')); i += visina + udaljenost) {
+        var kut = (Math.random() * 2 - 1) * fi;
+        objekti.push(new Objekt(x, i, sirina, visina, boja, kut));
+        //objekt(centarx, centary, sirina, visina, boja)
+        br++;
+        if (br == n) break;
+    }
     //console.log(parseInt($('#prostor').css('width')));
 }
 
@@ -401,7 +781,7 @@ function transform2(x, y, xc, yc, fi) {
 
 function Objekt(centarx, centary, sirina, visina, boja, fi) {
 // konstruktor objekta-mete koju gadamo. prva cetiri parametra zadaju polozaj i dimenzije objekta    
-// fi je kut nagiba objekta, za strogo nula imamo klasicni objekt
+// fi je kut nagiba objekta u stupnjevima, za strogo nula imamo klasicni objekt
     this.id = nacrtaj_pravokutnik(centarx, centary, sirina, visina, boja, fi);
     if (fi === 0) {
         this.centarx = centarx;
@@ -411,8 +791,6 @@ function Objekt(centarx, centary, sirina, visina, boja, fi) {
         transform1(t1, t2, t3, t4, fi / 180 * Math.PI);
         this.centarx = t3[0];
         this.centary = t4[0];
-        console.log('stare koordinate su' + centarx + ', ' + centary);
-        console.log('nove  koordinate su' + this.centarx + ', ' + this.centary);
     }
     this.sirina = sirina;
     this.visina = visina;
@@ -493,7 +871,6 @@ Objekt.prototype.interakcija = function(lopta, dt) {
             this.ukloni_objekt();
             zvuk3();
             vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
-            console.log('ODBIJENO od lijeve stranice');    
             return true;
         }
     }
@@ -508,7 +885,6 @@ Objekt.prototype.interakcija = function(lopta, dt) {
             loptavx *= -1;
             loptax += (dt-dt1) / 1000 * loptavx;
             loptay += dt / 1000 * loptavy;
-            console.log('ODBIJENO od desne stranice');        
             this.ukloni_objekt();
             zvuk3();
             
@@ -528,7 +904,6 @@ Objekt.prototype.interakcija = function(lopta, dt) {
                 
             loptavy *= -1;
             loptay += (dt-dt1) / 1000 * loptavy;
-            console.log('ODBIJENO od donje stranice');    
             this.ukloni_objekt();
             zvuk3();
             
@@ -544,8 +919,8 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         loptax += dt1 / 1000 * loptavx;
         var fi = Math.atan( (loptay-this.centary-this.visina/2)/(this.centarx-this.sirina/2-loptax) );
         fi = -1*fi;
-        console.log('udario si u lijevi donji rub ' + dt1);
-        console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + loptavx + ' / ' + loptavy  );
+        //console.log('udario si u lijevi donji rub ' + dt1);
+        //console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + loptavx + ' / ' + loptavy  );
             
         var vx = [loptavx], vy = [loptavy];
         var vxc = [0], vyc = [0];
@@ -571,8 +946,8 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         loptax += dt1 / 1000 * loptavx;
         var fi = Math.atan( (loptay-this.centary-this.visina/2)/(this.centarx+this.sirina/2-loptax) );
         fi = -1*fi;
-        console.log('udario si u desni donji rub ' + dt1);
-        console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + loptavx + ' / ' + loptavy  );
+        //console.log('udario si u desni donji rub ' + dt1);
+        //console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + loptavx + ' / ' + loptavy  );
             
         var vx = [loptavx], vy = [loptavy];
         var vxc = [0], vyc = [0];
@@ -598,8 +973,8 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         loptax += dt1 / 1000 * loptavx;
         var fi = Math.atan( (loptay-this.centary+this.visina/2)/(this.centarx-this.sirina/2-loptax) );
         fi = -1*fi;
-        console.log('udario si u lijevi gornji rub ' + dt1);
-        console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + loptavx + ' / ' + loptavy  );
+        //console.log('udario si u lijevi gornji rub ' + dt1);
+        //console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + loptavx + ' / ' + loptavy  );
             
         var vx = [loptavx], vy = [loptavy];
         var vxc = [0], vyc = [0];
@@ -625,8 +1000,8 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         loptax += dt1 / 1000 * loptavx;
         var fi = Math.atan( (loptay-this.centary+this.visina/2)/(this.centarx+this.sirina/2-loptax) );
         fi = -1*fi;
-        console.log('udario si u lijevi gornji rub ' + dt1);
-        console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + loptavx + ' / ' + loptavy  );
+        //console.log('udario si u lijevi gornji rub ' + dt1);
+        //console.log( loptax + ' / ' + loptay + ' / ' + radijus + ' / ' + loptavx + ' / ' + loptavy  );
             
         var vx = [loptavx], vy = [loptavy];
         var vxc = [0], vyc = [0];
