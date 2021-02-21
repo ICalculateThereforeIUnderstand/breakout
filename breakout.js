@@ -9,19 +9,27 @@ $('document').ready(function() {
     gameoverfl = false;
     novi_level = false;
     brreflektora = 0;
+    time = 0;
+    zadnji_padajuci = 0;  // link na timer zadnjeg padajuceg objekta
 
     document.addEventListener("keydown", pritisak_gumba_down);
     document.addEventListener("keyup", pritisak_gumba_up);
     
+    
+    // ovo su sve closure funkcije, za zvucne efekte i za updejtanje timera
     zvuk1 = pusti_zvuk(1);
     zvuk2 = pusti_zvuk(2);
     zvuk3 = pusti_zvuk(4);
+    updejtaj_vrijeme = updejtaj_time();
+    updejtaj_vrijeme1 = updejtaj_time1();
+    updejtaj_vrijeme2 = updejtaj_time2();
     
     var xx = [33];
     var yy = [22];
     var xc = [0], yc = [0];
     
     set_up_game(level);
+    
 })
 
 function set_up_game(level) {
@@ -32,7 +40,31 @@ function set_up_game(level) {
     postavi_bodove(bodovi);
     postavi_zivote(lives);
     
-    if (level == 1) {
+    if (level == -1) {
+        zidovi = new Zidovi(sirina_zidova, '#cccccc');
+        lopta = new Lopta(10, 300-106.066-50, 300-0, 500);
+        //Lopta(radijus, centarx, centary, vl)
+        lopta.postavi_brzinu(20, 0);
+    
+        reket = new Reket(500, 650, 600, 100, 20, 'blue', 25);
+        //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
+    
+        lopta.postavi_na_reket(reket);
+    
+        list = true;
+        dest = true;
+    
+        objekti = [];
+        if (true) {
+            objekti.push(new Objekt(350, 350, 50, 50, 'blue', 0));
+            objekti[0].tvrdi = true;
+        }
+        $('#svg').css('grid-column', '100' + ' / span ' + '1');
+        $('#svg').css('grid-row', '100' + ' / span ' + '1');
+        
+        
+        
+    } else if (level == 1) {
         zidovi = new Zidovi(sirina_zidova, '#cccccc');
         console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
     
@@ -49,11 +81,17 @@ function set_up_game(level) {
         dest = true;
     
         objekti = [];
+        padajuci_objekti = [];
         
         if (false) {
             objekti.push(new Objekt(200, 500, 150, 20, 'blue', 45));
             objekti[0].tvrdi = true;
         }
+        
+        padajuci_objekti.push(new Padajuci_objekt(500, 500, 50, 50, 50, 'green', 'pravokutnik'));
+        //Padajuci_objekt(centarx, centary, sirina, visina, v, boja, tip)
+        
+        nacrtaj_padajuce_loptice(500, 580, 76, 40, 'yellow');
         
         if (true) {
         dodaj_red_objekata(143, 100, 10, 80, 40, 'red', 10, objekti, 0);
@@ -86,6 +124,7 @@ function set_up_game(level) {
         dest = true;
     
         objekti = [];
+        padajuci_objekti = [];
         dodaj_red_objekata(103, 100, 10, 30, 16, 'red', 9, objekti, 0);
         dodaj_red_objekata(683, 100, 10, 30, 16, 'red', 9, objekti, 0);
         
@@ -122,6 +161,7 @@ function set_up_game(level) {
         dest = true;
     
         objekti = [];
+        padajuci_objekti = [];
         
         if (false) {
             objekti.push(new Objekt(200, 500, 150, 20, 'blue', 45));
@@ -157,6 +197,7 @@ function set_up_game(level) {
         dest = true;
     
         objekti = [];
+        padajuci_objekti = [];
         
         if (true) {
             objekti.push(new Objekt(555, 400, 120, 10, 'grey', 45));
@@ -216,6 +257,7 @@ function set_up_game(level) {
         dest = true;
     
         objekti = [];
+        padajuci_objekti = [];
         
         if (true) {
             objekti.push(new Objekt(555, 400, 120, 10, 'grey', 45));
@@ -275,6 +317,7 @@ function set_up_game(level) {
         dest = true;
     
         objekti = [];
+        padajuci_objekti = [];
         
         if (true) {
             objekti.push(new Objekt(300, 400, 120, 10, 'grey', 45));
@@ -338,6 +381,7 @@ function set_up_game(level) {
         dest = true;
     
         objekti = [];
+        padajuci_objekti = [];
         
         if (true) {
             objekti.push(new Objekt(553, 127, 195, 10, '#cccccc', 90));
@@ -394,6 +438,7 @@ function set_up_game(level) {
         dest = true;
     
         objekti = [];
+        padajuci_objekti = [];
         
         if (true) {
             objekti.push(new Objekt(500, 80, 150, 10, '#cccccc', 45));
@@ -469,6 +514,8 @@ function set_up_game(level) {
     
     id = setInterval(engine, dt);
     console.log('POSTAVIO sam interval');
+    
+    brrr = 0;  // razvojna varijabla, na kraju je obrisi
 }
 
 function engine() {
@@ -476,12 +523,13 @@ function engine() {
     if (!dest) reket.pomakni('d', dt); 
     
     var flag = true;
-    if (!reket.sticked) {
+    if (!reket.sticked || lopta.stickyball) {
         if (lopta.interakcija_zidovi(zidovi, dt)) flag = false;
         if (reket.interakcija(lopta, dt))  flag = false;
         
         var dulj = objekti.length;
         if (dulj == brreflektora) {
+            setTimeout(function() {document.getElementById("applause").play();}, 500);
             novi_level = true;
             clearInterval(id);
             zavrsi_gem(1);
@@ -491,7 +539,29 @@ function engine() {
             var obje = objekti[i];
             if (obje.interakcija(lopta, dt)) {
                 flag = false;
-                if (!obje.aktivan) objekti.splice(i, 1);
+                if (!obje.aktivan) {
+                    //if (brrr == 2) obje.stvori_padajuci(padajuci_objekti, 'jaka_lopta');
+                    //if (brrr == 3) obje.stvori_padajuci(padajuci_objekti, 'spora_lopta');
+                    //if (brrr == 1) obje.stvori_padajuci(padajuci_objekti, 'extra_zivot');
+                    //if (brrr == 0) obje.stvori_padajuci(padajuci_objekti, 'ljepljiva_lopta');
+                    if (brrr == 0) obje.stvori_padajuci(padajuci_objekti, 'dvije_lopte');
+                    brrr++;
+                    objekti.splice(i, 1);
+                }
+            }
+        }
+        
+        var dulj1 = padajuci_objekti.length;
+        if (dulj1 > 0) {
+            for (var i = dulj1-1; i > -1; i--) {
+                var obje1 = padajuci_objekti[i];
+                if (obje1.pomakni(dt, reket))  {
+                    obje1.ukloni(); 
+                    padajuci_objekti.splice(i, 1);
+                    console.log('upravo je padajuci objekt pobjegao van domasaja');
+                } else if (obje1.interakcija(reket)) {
+                    padajuci_objekti.splice(i, 1);
+                }
             }
         }
         
@@ -501,6 +571,14 @@ function engine() {
             console.log('UGASIO sam interval');
             lives--;
             postavi_zivote(lives);
+            setTimeout(function() {document.getElementById("zvuk11").play();}, 100);
+            
+            for (var i = padajuci_objekti.length-1; i > -1; i--)  {
+                var obje1 = padajuci_objekti[i];
+                obje1.ukloni();
+            }
+            padajuci_objekti = [];
+            
             if (lives == 0) {
                 gameoverfl = true;
                 zavrsi_gem(gameoverfl);
@@ -512,6 +590,23 @@ function engine() {
     
 }
 
+function poruka(tekst) {
+// ova funkcija ispisuje poruku na ekranu kada igrac reketom pokupi padajuci objekt
+    var el = $("<div></div>");
+    el.attr('id', 'poruka');
+    var el1 = $("<p>" + tekst + "</p>");
+    el.append(el1);
+    
+    var sirina = parseInt($('#prostor').css('width'));
+    var visina = parseInt($('#prostor').css('height'));
+    console.log(sirina + ' / ' + visina);
+    visina = (visina - 100)/2;
+    sirina = (sirina - 300)/2;
+    el.css('top', visina + 'px');
+    el.css('left', sirina-50 + 'px');
+    
+    $('#prostor').append(el);
+}
 
 function zavrsi_gem(flag) {
 // za flag true je gameover, za false je izgubljen zivot, nastavlja se level, za strogo 1 je novi level
@@ -589,6 +684,9 @@ function Lopta(radijus, centarx, centary, vl) {
     this.vy = 0;
     this.vl = vl;
     this.randomfl = true; // za true random ispaljivanje, za false ravno ispaljivanje
+    this.power = false; // za true je lopta probojna i ne odbija se od objekata.
+    this.stickyball = false; // za true lopta se zalijepi za reket i ceka ponovo ispaljivanje
+    this.spora = false;  // za true je lopta spora
     
     this.el = $("<div></div>");
     this.el.attr('id', 'lopta');
@@ -599,14 +697,22 @@ function Lopta(radijus, centarx, centary, vl) {
     
     this.upit = function() {
         console.log("trenutna brzina loptice je (" + this.vx + ', ' + this.vy + ')');
+        console.log("trenutna pozicija loptice je (" + this.centarx + ', ' + this.centary + ')');
+        if (lopta.spora) console.log("lopta je trenutno spora");
+        else console.log("lopta je trenutno brza");
     }
     
     this.random_brzina = function() {
         var max_otklon = 45; // maksimalni otklon od vertikale u stupnjevima
+        if (this.stickyball)  max_otklon = 0;
         var fii = (Math.random() * 2 - 1) * max_otklon / 180 * Math.PI;
         if (!this.randomfl) fii = 0;
         this.vx = Math.sin(fii) * vl;
         this.vy = -1 * Math.cos(fii) * vl;
+        if (this.spora) {
+            this.vx *= 300 / vl;
+            this.vy *= 300 / vl;
+        }
         console.log('fi je ' + fii + ' / ' + this.vx + ' ' + this.vy);
     }
     
@@ -714,69 +820,110 @@ function Lopta(radijus, centarx, centary, vl) {
 
 }
 
-function vrijeme_udara_u_rub(centarx, centary, radijus, vx, vy, rubx, ruby) {
+function Padajuci_objekt(centarx, centary, sirina, visina, v, tip) {
+// konstruktor padajuceg objekta. v je brzina propadanja u pikselima po sekundi
+    this.centarx = centarx;
+    this.centary = centary;
+    this.sirina = sirina;
+    this.visina = visina;
+    this.v = v;
+    this.tip = tip;
     
-    if (vx > -1 && vx < 1) {  // efektivno je vx = 0
-        var y1 = ruby;
-        var y2 = ruby;
-        var kor = Math.sqrt(radijus*radijus - Math.pow(centarx-rubx, 2));
+    if (tip == 'spora_lopta') this.id = nacrtaj_padajucu_lopticu(centarx, centary, sirina, visina, 'yellow');
+    else if (tip == 'dvije_lopte') this.id = nacrtaj_padajuce_loptice(centarx, centary, sirina, visina, 'yellow');
+    else if (tip == 'jaka_lopta') this.id = nacrtaj_padajucu_lopticu(centarx, centary, sirina, visina, 'red');
+    else if (tip == 'extra_zivot') this.id = nacrtaj_prvu_pomoc(centarx, centary, sirina, visina);
+    else if (tip == 'ljepljiva_lopta') this.id = nacrtaj_ljepilo(centarx, centary, sirina, visina, 'blue');
+    else this.id = nacrtaj_pravokutnik(centarx, centary, sirina, visina, 'green', 0);
+    
+    this.pomakni = function(dt, reket) {
+    // metoda pomice objekt, i vraca true ako je objekt prosao reket i ne moze se vise dohvatiti    
+        this.centary = this.centary + dt / 1000 * this.v;
+        var el = $('#element_' + this.id.toString());
+        var kor2 =  Math.floor(this.centary - this.visina/2);
+        if (kor2 < 1) kor2 = 1;
+        el.css('grid-row', kor2.toString() + ' / span ' + this.visina.toString());
         
-        //var priv1, priv2;
-        
-        y1 += kor; y1 -= centary; y1 /= vy;
-        y2 -= kor; y2 -= centary; y2 /= vy;
-        
-        //if (y1 < y2) console.log('y ' + priv1);
-        //else console.log('y ' + priv2);
-        
-        if (y1 < y2) return y1 * 1000;
-        else return y2 * 1000;
+        if (this.centary - reket.centary > (this.visina + reket.visina)/2) return true;
+        return false;
+    } 
+    
+    this.interakcija = function(reket) {
+        var udaljenostx = reket.centarx - this.centarx;
+        var udaljenosty = reket.centary - this.centary;
+        if (udaljenostx < 0) udaljenostx *= -1;
+        if (udaljenosty < 0) udaljenosty *= -1;
+
+        if (udaljenostx < (this.sirina + reket.sirina)/2 && udaljenosty < (this.visina + reket.visina)/2) {
+            if (this.tip == 'spora_lopta') {
+                console.log('AKTIVIRANA je spora lopta');
+                time = 20;
+                postavi_vrijeme(time);
+                lopta.vx *= 300 / lopta.vl;
+                lopta.vy *= 300 / lopta.vl;
+                lopta.spora = true;
+                if (typeof id_vrijeme !== 'undefined') clearTimeout(id_vrijeme);
+                id_vrijeme = setTimeout(updejtaj_vrijeme, 1000, true);
+                zadnji_padajuci = id_vrijeme;
+                makni_poruku();
+                poruka('Slow ball!');
+                document.getElementById("zvuk8").play();
+                if (typeof id_poruka !== 'undefined') clearTimeout(id_poruka);
+                id_poruka = setTimeout(makni_poruku, 2000);
+            } else if (this.tip == 'dvije_lopte') {
+                
+                
+                makni_poruku();
+                poruka('Double ball!');
+                //document.getElementById("zvuk7").play();
+                if (typeof id_poruka !== 'undefined') clearTimeout(id_poruka);
+                id_poruka = setTimeout(makni_poruku, 2000);
+            } else if (this.tip == 'jaka_lopta') {
+                time = 40;
+                postavi_vrijeme(time);
+                lopta.power = true;
+                $('#lopta').css('background-color', 'red');
+                if (typeof id_vrijeme1 !== 'undefined') clearTimeout(id_vrijeme1);
+                id_vrijeme1 = setTimeout(updejtaj_vrijeme1, 1000, true);
+                zadnji_padajuci = id_vrijeme1;
+                makni_poruku();
+                poruka('Power ball!');
+                document.getElementById("zvuk7").play();
+                if (typeof id_poruka !== 'undefined') clearTimeout(id_poruka);
+                id_poruka = setTimeout(makni_poruku, 2000);
+            } else if (this.tip == 'extra_zivot') {
+                makni_poruku();
+                poruka('Extra life!');
+                document.getElementById("zvuk6").play(); 
+                lives++;
+                postavi_zivote(lives);
+                if (typeof id_poruka !== 'undefined') clearTimeout(id_poruka);
+                id_poruka = setTimeout(makni_poruku, 2000);
+            } else if (this.tip == 'ljepljiva_lopta') {
+                lopta.stickyball = true;
+                makni_poruku();
+                poruka('Sticky ball!');
+                document.getElementById("zvuk10").play();
+                $('#lopta').css('background-color', '#03f8fc');
+                id_poruka = setTimeout(makni_poruku, 2000);
+                time = 20;
+                postavi_vrijeme(time);
+                if (typeof id_vrijeme2 !== 'undefined') clearTimeout(id_vrijeme2);
+                id_vrijeme2 = setTimeout(updejtaj_vrijeme2, 1000, true);
+            }
+            
+            this.ukloni();
+            return true;
+        }
+        return false;
     }
     
-    if (vy > -1 && vy < 1) {  // efektivno je vy = 0
-        var x1 = rubx;
-        var x2 = rubx;
-        var kor = Math.sqrt(radijus*radijus - Math.pow(centary-ruby, 2));
-        
-        //var priv1, priv2;
-        
-        x1 += kor; x1 -= centarx; x1 /= vx;
-        x2 -= kor; x2 -= centarx; x2 /= vx;
-        
-        //if (x1 < x2) console.log('x ' + priv1);
-        //else console.log('x ' + priv2);
-        
-        if (x1 < x2) return x1 * 1000;
-        else return x2 * 1000;
+    this.ukloni = function() {
+        var v = '#element_' + this.id;
+        console.log('uklanjam ' + this.id);
+        $(v).remove();
     }
     
-    var a = vy / vx;
-    var b = centary - a * centarx;
-    var kor = 2 * Math.sqrt( Math.pow(a*b-a*ruby-rubx, 2) - (a*a+1)*(b*b + ruby*ruby + rubx*rubx - 2*b*ruby - radijus*radijus) )
-    var t1 = -2*(a*b - a*ruby - rubx);
-    var t2 = t1;
-    t1 += kor;
-    t2 -= kor;
-    t1 /= 2*(a*a+1);
-    t2 /= 2*(a*a+1);
-    t1 -= centarx;
-    t2 -= centarx;
-    t1 /= vx;
-    t2 /= vx;
-    if (t2 < t1) return t2*1000;
-    else return t1*1000;
-}
-
-function transform1(x, y, xc, yc, fi) {
-    // transformira koordinate x, y u xc, yc sustav udarenog objekta, fi je kut izmedu osi x i xc dva koordinatna sustava
-    xc[0] = x[0] * Math.cos(fi)  +  y[0] * Math.sin(fi);
-    yc[0] = -1 * x[0] * Math.sin(fi)  +  y[0] * Math.cos(fi);
-}
-
-function transform2(x, y, xc, yc, fi) {
-    // transformira koordinate xc, yc udarenog objekta u x, y sustav igraceve plohe, fi je kut izmedu osi x i xc dva koordinatna sustava
-    x[0] = xc[0] * Math.cos(fi)  -  yc[0] * Math.sin(fi);
-    y[0] = xc[0] * Math.sin(fi)  +  yc[0] * Math.cos(fi);
 }
 
 function Objekt(centarx, centary, sirina, visina, boja, fi) {
@@ -805,6 +952,28 @@ Objekt.prototype.ukloni_objekt = function() {
         $(v).remove();
         this.aktivan = false;
     }
+}
+
+Objekt.prototype.stvori_padajuci = function(objekti, tip) {
+    var sir = 40;
+    var vis = 40;
+    if (tip == 'spora_lopta') {
+        var obj = new Padajuci_objekt(this.centarx, this.centary + (this.visina+vis)/2, sir, vis, 100, tip);
+    } else if (tip == 'jaka_lopta') {
+        var obj = new Padajuci_objekt(this.centarx, this.centary + (this.visina+vis)/2, sir, vis, 100, tip);
+    } else if (tip == 'dvije_lopte') {
+        sir = 80;
+        var obj = new Padajuci_objekt(this.centarx, this.centary + (this.visina+vis)/2, sir, vis, 100, tip);
+    } else if (tip == 'extra_zivot') {
+        sir = 50;
+        vis = 50;
+        var obj = new Padajuci_objekt(this.centarx, this.centary + (this.visina+vis)/2, sir, vis, 100, tip);
+    } else if (tip == 'ljepljiva_lopta') {
+        sir = 50;
+        vis = 50;
+        var obj = new Padajuci_objekt(this.centarx, this.centary + (this.visina+vis)/2, sir, vis, 100, tip);
+    } 
+    objekti.push(obj);
 }
 
 Objekt.prototype.interakcija = function(lopta, dt) {
@@ -844,8 +1013,8 @@ Objekt.prototype.interakcija = function(lopta, dt) {
                 
             loptay += dt1 / 1000 * loptavy;
             loptax += dt / 1000 * loptavx;
-                
-            loptavy *= -1;
+            
+            if (!(lopta.power && !this.tvrdi))  loptavy *= -1;
             loptay += (dt-dt1) / 1000 * loptavy;
             console.log('ODBIJENO od gornje stranice');        
             this.ukloni_objekt();
@@ -863,7 +1032,8 @@ Objekt.prototype.interakcija = function(lopta, dt) {
             var dt1 = d1 / loptavx * 1000;
                 
             loptax += dt1 / 1000 * loptavx;
-            loptavx *= -1;
+            //loptavx *= -1;
+            if (!(lopta.power && !this.tvrdi))  loptavx *= -1;
             
             loptax += (dt-dt1) / 1000 * loptavx;
             loptay += dt / 1000 * loptavy;
@@ -882,7 +1052,8 @@ Objekt.prototype.interakcija = function(lopta, dt) {
             var dt1 = -1 * d1 / loptavx * 1000;
                 
             loptax += dt1 / 1000 * loptavx;
-            loptavx *= -1;
+            //loptavx *= -1;
+            if (!(lopta.power && !this.tvrdi))  loptavx *= -1;
             loptax += (dt-dt1) / 1000 * loptavx;
             loptay += dt / 1000 * loptavy;
             this.ukloni_objekt();
@@ -902,7 +1073,8 @@ Objekt.prototype.interakcija = function(lopta, dt) {
             loptay += dt1 / 1000 * loptavy;
             loptax += dt / 1000 * loptavx;
                 
-            loptavy *= -1;
+            //loptavy *= -1;
+            if (!(lopta.power && !this.tvrdi))  loptavy *= -1;
             loptay += (dt-dt1) / 1000 * loptavy;
             this.ukloni_objekt();
             zvuk3();
@@ -925,7 +1097,8 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         var vx = [loptavx], vy = [loptavy];
         var vxc = [0], vyc = [0];
         transform1(vx, vy, vxc, vyc, fi);
-        vxc[0] *= -1;
+        //vxc[0] *= -1;
+        if (!(lopta.power && !this.tvrdi))  vxc[0] *= -1;
         transform2(vx, vy, vxc, vyc, fi);
         loptavx = vx[0]; loptavy = vy[0];
             
@@ -952,7 +1125,8 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         var vx = [loptavx], vy = [loptavy];
         var vxc = [0], vyc = [0];
         transform1(vx, vy, vxc, vyc, fi);
-        vxc[0] *= -1;
+        //vxc[0] *= -1;
+        if (!(lopta.power && !this.tvrdi))  vxc[0] *= -1;
         transform2(vx, vy, vxc, vyc, fi);
         loptavx = vx[0]; loptavy = vy[0];
             
@@ -979,7 +1153,8 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         var vx = [loptavx], vy = [loptavy];
         var vxc = [0], vyc = [0];
         transform1(vx, vy, vxc, vyc, fi);
-        vxc[0] *= -1;
+        //vxc[0] *= -1;
+        if (!(lopta.power && !this.tvrdi))  vxc[0] *= -1;
         transform2(vx, vy, vxc, vyc, fi);
         loptavx = vx[0]; loptavy = vy[0];
             
@@ -1006,7 +1181,8 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         var vx = [loptavx], vy = [loptavy];
         var vxc = [0], vyc = [0];
         transform1(vx, vy, vxc, vyc, fi);
-        vxc[0] *= -1;
+        //vxc[0] *= -1;
+        if (!(lopta.power && !this.tvrdi))  vxc[0] *= -1;
         transform2(vx, vy, vxc, vyc, fi);
         loptavx = vx[0]; loptavy = vy[0];
             
@@ -1122,23 +1298,29 @@ function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
                 lopta.centary += dt1 / 1000 * lopta.vy;
                 lopta.centarx += dt1 / 1000 * lopta.vx;
                 
-                var fi = this.grad_zakrivljenosti * (lopta.centarx - this.centarx);
-                if (false) {
-                    var vx = [lopta.vx], vy = [lopta.vy];
-                    var vxc = [0], vyc = [0];
-                    transform1(vx, vy, vxc, vyc, fi);
-                    vyc[0] *= -1;
-                    transform2(vx, vy, vxc, vyc, fi);
-                    lopta.vx = vx[0]; lopta.vy = vy[0];
+                if (lopta.stickyball) {
+                    lopta.vx = 0;
+                    lopta.vy = 0;
+                    this.sticked = true;
                 } else {
-                    var v = Math.sqrt(Math.pow(lopta.vx, 2) + Math.pow(lopta.vy, 2));
-                    lopta.vx = v * Math.sin(fi);
-                    lopta.vy = -1 * v * Math.cos(fi);
-                }
+                    var fi = this.grad_zakrivljenosti * (lopta.centarx - this.centarx);
+                    if (false) {
+                        var vx = [lopta.vx], vy = [lopta.vy];
+                        var vxc = [0], vyc = [0];
+                        transform1(vx, vy, vxc, vyc, fi);
+                        vyc[0] *= -1;
+                        transform2(vx, vy, vxc, vyc, fi);
+                        lopta.vx = vx[0]; lopta.vy = vy[0];
+                    } else {
+                        var v = Math.sqrt(Math.pow(lopta.vx, 2) + Math.pow(lopta.vy, 2));
+                        lopta.vx = v * Math.sin(fi);
+                        lopta.vy = -1 * v * Math.cos(fi);
+                    }
                 
-                //lopta.vy *= -1;
-                lopta.centary += (dt-dt1) / 1000 * lopta.vy;
-                lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
+                    //lopta.vy *= -1;
+                    lopta.centary += (dt-dt1) / 1000 * lopta.vy;
+                    lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
+                }
                 zvuk2();
                 return true;
             }
@@ -1292,6 +1474,117 @@ function Zidovi(sirina, boja) {
     }
 }
 
+function nacrtaj_prvu_pomoc(centarx, centary, sirina, visina) {
+// ova funkcija crta kutiju prve pomoci za extra zivot padajuci objekt
+    
+    var t1 = Math.floor(52/75*sirina);
+    var t2 = Math.floor(14/75*sirina);
+    var t3 = Math.floor(sirina/10);
+    var t4 = Math.floor(sirina/30);
+    var t5 = Math.floor(sirina/7.5);
+    var el = $("\
+        <svg width='" + Math.floor(sirina/5*6) + "' height='" + Math.floor(visina/5*6) + "'> \
+            <rect \
+                style='opacity:0.5;fill:#ff0000;stroke:#000000;stroke-width:" + t4 + "' \
+                height='" + visina + "' \
+                width='" + sirina + "' \
+                ry='" + t5 + "' \
+                rx='" + t5 + "' \
+                y = '" + t3 +"' \
+                x = '" + t3 +"' />\
+            <rect \
+                y='" + Math.floor((sirina-t2)/2 + t3) + "' \
+                x='" + Math.floor((sirina-t1)/2 + t3) + "' \
+                height='" + t2 + "'\
+                width='" + t1 + "' \
+                style='fill:#ffffff;stroke:none' /> \
+                <rect \
+                y='" + Math.floor((sirina-t1)/2 + t3) + "' \
+                x='" + Math.floor((sirina-t2)/2 + t3) + "' \
+                height='" + t1 + "' \
+                width='" + t2 + "' \
+                style='fill:#ffffff;stroke:none' /> \
+        </svg>");
+    el.attr('id', 'element_' + idbr);
+    idbr++; 
+    
+    var kor1 =  Math.floor(centarx - sirina/2 - t3 - t4);
+    if (kor1 < 1) kor1 = 1;  
+    var kor2 =  Math.floor(centary - visina/2 - t3 - t4);
+    if (kor2 < 1) kor2 = 1;  
+    el.css('grid-column', kor1.toString() + ' / span 1');
+    el.css('grid-row', kor2.toString() + ' / span 1');
+    
+    $('#prostor').append(el);
+    return idbr - 1; 
+}
+
+function nacrtaj_padajuce_loptice(centarx, centary, sirina, visina, boja) {
+// ovu funkciju koristimo za crtanje padajuce loptice koja daje opciju super lopte i opciju extra lopte    
+    
+    var radijus = Math.floor(visina/2);
+    
+    var el = $("<svg width='" + Math.floor(sirina*1.2) + "' height='" + Math.floor(visina*1.2) + "'><circle cx='" + Math.floor(sirina*1.2/4) + "' cy='" + Math.floor(visina*1.2/2) + "' r='" + radijus + "' stroke='green' stroke-width='4' fill='" + boja + "' /> \
+    <circle cx='" + Math.floor(sirina*2.8/4) + "' cy='" + Math.floor(visina*1.2/2) + "' r='" + radijus + "' stroke='green' stroke-width='4' fill='" + boja + "' /> \
+    </svg>");
+    
+    el.attr('id', 'element_' + idbr);
+    idbr++;
+    console.log('prosao');
+    
+    var kor1 =  Math.floor(centarx - 1.0*sirina/2);
+    if (kor1 < 1) kor1 = 1;  
+    var kor2 =  Math.floor(centary - 1.2*visina/2);
+    if (kor2 < 1) kor2 = 1;
+    el.css('grid-column', kor1.toString() + ' / span 1');
+    el.css('grid-row', kor2.toString() + ' / span 1');
+    
+    $('#prostor').append(el);
+    return idbr - 1;
+}
+
+function nacrtaj_padajucu_lopticu(centarx, centary, sirina, visina, boja) {
+// ovu funkciju koristimo za crtanje padajuce loptice koja daje opciju super lopte i opciju extra lopte    
+    
+    var radijus = Math.floor(sirina+visina)/4;
+    
+    var el = $("<svg width='" + Math.floor(sirina*1.2) + "' height='" + Math.floor(visina*1.2) + "'><circle cx='" + Math.floor(sirina*1.2/2) + "' cy='" + Math.floor(visina*1.2/2) + "' r='" + radijus + "' stroke='green' stroke-width='4' fill='" + boja + "' /></svg>");
+    el.attr('id', 'element_' + idbr);
+    idbr++;
+    
+    var kor1 =  Math.floor(centarx - 50/2);
+    if (kor1 < 1) kor1 = 1;  
+    var kor2 =  Math.floor(centary - 50/2);
+    if (kor2 < 1) kor2 = 1;
+    el.css('grid-column', kor1.toString() + ' / span 1');
+    el.css('grid-row', kor2.toString() + ' / span 1');
+    
+    $('#prostor').append(el);
+    return idbr - 1;
+}
+
+function nacrtaj_ljepilo(centarx, centary, sirina, visina, boja) {
+// ovu funkciju koristimo za crtanje sticky_ball padajuceg objekta
+    var el = $("<div></div>");
+    el.attr('id', 'element_' + idbr);
+    idbr++;
+    
+    el.css('background-color', boja);  
+    var kor1 =  Math.floor(centarx - sirina/2);
+    if (kor1 < 1) kor1 = 1;  
+    var kor2 =  Math.floor(centary - visina/2);
+    if (kor2 < 1) kor2 = 1;
+    el.css('grid-column', kor1.toString() + ' / span ' + sirina.toString());
+    el.css('grid-row', kor2.toString() + ' / span ' + visina.toString());
+    el.css('background-image', 'url("ljepilo.svg")');
+    el.css('background-repeat', 'no-repeat');
+    el.css('background-size', 'cover');
+    el.css('border-radius', '5px');
+    
+    $('#prostor').append(el);
+    return idbr - 1;  
+}
+
 function nacrtaj_pravokutnik(centarX, centarY, sirina, visina, boja, fi) {
 // ova funkcija crta pravokutnik na igracku povrsinu. koordinate centarX/Y zadaju poziciju centra elementa   
 // sirina i visina zadaju te velicine u pikselima, boja je string i govori o boji objekta, zadajes je u css formatu npr. '#f12e34' ili 'blue'
@@ -1316,6 +1609,187 @@ function nacrtaj_pravokutnik(centarX, centarY, sirina, visina, boja, fi) {
     //console.log('grid-row', kor2.toString() + ' / span ' + visina.toString());
     return idbr - 1;
 }
+
+function pusti_zvuk(broj) {
+    var count = 0;
+    var br = 10;
+    var polje = [];
+    for (var i = 0; i < br; i++) {
+        polje.push(new Audio('zvuk' + broj + '.mp3'));
+    }
+    
+    function fun() {
+        polje[count%br].play();
+        count++;
+    }
+    return fun;
+}
+
+function postavi_level(level) {$('#level > .brojac').html(level.toString());}
+function postavi_bodove(bodovi) {$('#bodovi > .brojac').html(bodovi.toString());}
+function postavi_zivote(lives) {$('#zivoti > .brojac').html(lives.toString());}
+function postavi_vrijeme(time) {$('#vrijeme > .brojac').html(time.toString());}
+
+function vrijeme_udara_u_rub(centarx, centary, radijus, vx, vy, rubx, ruby) {
+    
+    if (vx > -1 && vx < 1) {  // efektivno je vx = 0
+        var y1 = ruby;
+        var y2 = ruby;
+        var kor = Math.sqrt(radijus*radijus - Math.pow(centarx-rubx, 2));
+        
+        //var priv1, priv2;
+        
+        y1 += kor; y1 -= centary; y1 /= vy;
+        y2 -= kor; y2 -= centary; y2 /= vy;
+        
+        //if (y1 < y2) console.log('y ' + priv1);
+        //else console.log('y ' + priv2);
+        
+        if (y1 < y2) return y1 * 1000;
+        else return y2 * 1000;
+    }
+    
+    if (vy > -1 && vy < 1) {  // efektivno je vy = 0
+        var x1 = rubx;
+        var x2 = rubx;
+        var kor = Math.sqrt(radijus*radijus - Math.pow(centary-ruby, 2));
+        
+        //var priv1, priv2;
+        
+        x1 += kor; x1 -= centarx; x1 /= vx;
+        x2 -= kor; x2 -= centarx; x2 /= vx;
+        
+        //if (x1 < x2) console.log('x ' + priv1);
+        //else console.log('x ' + priv2);
+        
+        if (x1 < x2) return x1 * 1000;
+        else return x2 * 1000;
+    }
+    
+    var a = vy / vx;
+    var b = centary - a * centarx;
+    var kor = 2 * Math.sqrt( Math.pow(a*b-a*ruby-rubx, 2) - (a*a+1)*(b*b + ruby*ruby + rubx*rubx - 2*b*ruby - radijus*radijus) )
+    var t1 = -2*(a*b - a*ruby - rubx);
+    var t2 = t1;
+    t1 += kor;
+    t2 -= kor;
+    t1 /= 2*(a*a+1);
+    t2 /= 2*(a*a+1);
+    t1 -= centarx;
+    t2 -= centarx;
+    t1 /= vx;
+    t2 /= vx;
+    if (t2 < t1) return t2*1000;
+    else return t1*1000;
+}
+
+function transform1(x, y, xc, yc, fi) {
+    // transformira koordinate x, y u xc, yc sustav udarenog objekta, fi je kut izmedu osi x i xc dva koordinatna sustava
+    xc[0] = x[0] * Math.cos(fi)  +  y[0] * Math.sin(fi);
+    yc[0] = -1 * x[0] * Math.sin(fi)  +  y[0] * Math.cos(fi);
+}
+
+function transform2(x, y, xc, yc, fi) {
+    // transformira koordinate xc, yc udarenog objekta u x, y sustav igraceve plohe, fi je kut izmedu osi x i xc dva koordinatna sustava
+    x[0] = xc[0] * Math.cos(fi)  -  yc[0] * Math.sin(fi);
+    y[0] = xc[0] * Math.sin(fi)  +  yc[0] * Math.cos(fi);
+}
+
+function updejtaj_time2() {
+// za flag=true se radi o prvom pozivu funkcije i postavljas unutarnji timer, za false se
+// unutarnji timer vrti prema nuli
+    var tim = 0;
+    
+    function fun(flag) {
+        console.log('pokrenuli smo FUN. ' + tim);
+        if (flag) tim = time;
+        tim--;
+        if (zadnji_padajuci == 0)  zadnji_padajuci = id_vrijeme2;
+        if (zadnji_padajuci == id_vrijeme2)  postavi_vrijeme(tim);
+        if (tim == 0) {
+            console.log('timer je gotov');
+            //clearTimeout(id_vrijeme);
+            lopta.stickyball = false;
+            $('#lopta').css('background-color', boja(lopta));
+            if (zadnji_padajuci == id_vrijeme2)  zadnji_padajuci = 0;
+        } else {
+            if (zadnji_padajuci == id_vrijeme2) {
+                id_vrijeme2 = setTimeout(updejtaj_vrijeme2, 1000, false);
+                zadnji_padajuci = id_vrijeme2;
+            } else  setTimeout(updejtaj_vrijeme2, 1000, false);
+        }
+    }
+    return fun;
+}
+
+function updejtaj_time1() {
+// za flag=true se radi o prvom pozivu funkcije i postavljas unutarnji timer, za false se
+// unutarnji timer vrti prema nuli
+    var tim = 0;
+    
+    function fun(flag) {
+        console.log('pokrenuli smo FUN. ' + tim);
+        if (flag) tim = time;
+        tim--;
+        if (zadnji_padajuci == 0)  zadnji_padajuci = id_vrijeme1;
+        if (zadnji_padajuci == id_vrijeme1)  postavi_vrijeme(tim);
+        if (tim == 0) {
+            console.log('timer je gotov');
+            //clearTimeout(id_vrijeme);
+            lopta.power = false;
+            $('#lopta').css('background-color', boja(lopta));
+            if (zadnji_padajuci == id_vrijeme1)  zadnji_padajuci = 0;
+        } else {
+            if (zadnji_padajuci == id_vrijeme1) {
+                id_vrijeme1 = setTimeout(updejtaj_vrijeme1, 1000, false);
+                zadnji_padajuci = id_vrijeme1;
+            } else  setTimeout(updejtaj_vrijeme1, 1000, false);
+        }
+    }
+    return fun;
+}
+
+function updejtaj_time() {
+// za flag=true se radi o prvom pozivu funkcije i postavljas unutarnji timer, za false se
+// unutarnji timer vrti prema nuli
+    var tim = 0;
+    
+    function fun(flag) {
+        console.log('pokrenuli smo FUN. ' + tim);
+        if (flag) tim = time;
+        tim--;
+        if (zadnji_padajuci == 0)  zadnji_padajuci = id_vrijeme;
+        if (zadnji_padajuci == id_vrijeme)  postavi_vrijeme(tim);
+        if (tim == 0) {
+            console.log('timer je gotov');
+            //clearTimeout(id_vrijeme);
+            var v = Math.sqrt(lopta.vx*lopta.vx + lopta.vy*lopta.vy);
+            if (v != 0) {
+                lopta.vx *= lopta.vl / v;
+                lopta.vy *= lopta.vl / v;
+            }
+            $('#lopta').css('background-color', boja(lopta));
+            document.getElementById("zvuk9").play();
+            lopta.spora = false;
+            if (zadnji_padajuci == id_vrijeme)  zadnji_padajuci = 0;
+        } else {
+            if (zadnji_padajuci == id_vrijeme) {
+                id_vrijeme = setTimeout(updejtaj_vrijeme, 1000, false);
+                zadnji_padajuci = id_vrijeme;
+            } else  setTimeout(updejtaj_vrijeme, 1000, false);
+        }
+    }
+    return fun;
+}
+
+function boja(lopta) {
+// ova funkcija nakon isteka bonusa gleda da li je jos neki bonus prisutan i daje pripadajucu boju lopti    
+    if (lopta.power) return 'red'; 
+    else if (lopta.stickyball) return '#03f8fc';
+    return 'yellow';
+}
+
+function makni_poruku() {  $('#poruka').remove() }
 
 function pritisak_gumba_up(ev) {
     //console.log("Otpustio si " + ev.code +  " " + Math.floor(Math.random()*4000));
@@ -1384,23 +1858,3 @@ function pritisak_gumba_down(ev) {
             break;
     }
 }
-
-function pusti_zvuk(broj) {
-    var count = 0;
-    var br = 10;
-    var polje = [];
-    for (var i = 0; i < br; i++) {
-        polje.push(new Audio('zvuk' + broj + '.mp3'));
-    }
-    
-    function fun() {
-        console.log('stisnuo sam ' + count);
-        polje[count%br].play();
-        count++;
-    }
-    return fun;
-}
-
-function postavi_level(level) {$('#level > .brojac').html(level.toString());}
-function postavi_bodove(bodovi) {$('#bodovi > .brojac').html(bodovi.toString());}
-function postavi_zivote(lives) {$('#zivoti > .brojac').html(lives.toString());}
