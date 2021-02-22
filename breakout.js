@@ -39,6 +39,8 @@ function set_up_game(level) {
     postavi_level(level);
     postavi_bodove(bodovi);
     postavi_zivote(lives);
+    lopta1 = 0;
+    brreflektora = 0;
     
     if (level == -1) {
         zidovi = new Zidovi(sirina_zidova, '#cccccc');
@@ -68,9 +70,9 @@ function set_up_game(level) {
         zidovi = new Zidovi(sirina_zidova, '#cccccc');
         console.log('zidovi su dani sljedecim pravcima: ' + zidovi.lijevi + ' ' + zidovi.desni + " " + zidovi.gornji + ' ' + zidovi.donji);
     
-        lopta = new Lopta(10, 300-106.066-50, 300-0, 500);
+        lopta = new Lopta(10, 300, 500-0, 500);
         //Lopta(radijus, centarx, centary, vl)
-        lopta.postavi_brzinu(20, 0);
+        lopta.postavi_brzinu(400, 5);
     
         reket = new Reket(500, 650, 600, 100, 20, 'blue', 25);
         //          Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost)
@@ -83,15 +85,10 @@ function set_up_game(level) {
         objekti = [];
         padajuci_objekti = [];
         
-        if (false) {
-            objekti.push(new Objekt(200, 500, 150, 20, 'blue', 45));
-            objekti[0].tvrdi = true;
-        }
-        
-        padajuci_objekti.push(new Padajuci_objekt(500, 500, 50, 50, 50, 'green', 'pravokutnik'));
+        //padajuci_objekti.push(new Padajuci_objekt(500, 500, 50, 50, 50, 'green', 'pravokutnik'));
         //Padajuci_objekt(centarx, centary, sirina, visina, v, boja, tip)
         
-        nacrtaj_padajuce_loptice(500, 580, 76, 40, 'yellow');
+        //nacrtaj_padajuce_loptice(500, 580, 76, 40, 'yellow');
         
         if (true) {
         dodaj_red_objekata(143, 100, 10, 80, 40, 'red', 10, objekti, 0);
@@ -522,10 +519,18 @@ function engine() {
     if (!list) reket.pomakni('l', dt); 
     if (!dest) reket.pomakni('d', dt); 
     
+    var brlopti = 1;
     var flag = true;
+    var flag1 = true;
     if (!reket.sticked || lopta.stickyball) {
         if (lopta.interakcija_zidovi(zidovi, dt)) flag = false;
         if (reket.interakcija(lopta, dt))  flag = false;
+        
+        if (lopta1 !== 0) {
+            if (lopta1.interakcija_zidovi(zidovi, dt)) flag1 = false;
+            if (reket.interakcija(lopta1, dt))  flag1 = false;
+            brlopti = 2;
+        }
         
         var dulj = objekti.length;
         if (dulj == brreflektora) {
@@ -536,17 +541,29 @@ function engine() {
         }
         
         for (var i = dulj-1; i > -1; i--) {
-            var obje = objekti[i];
-            if (obje.interakcija(lopta, dt)) {
-                flag = false;
-                if (!obje.aktivan) {
-                    //if (brrr == 2) obje.stvori_padajuci(padajuci_objekti, 'jaka_lopta');
-                    //if (brrr == 3) obje.stvori_padajuci(padajuci_objekti, 'spora_lopta');
-                    //if (brrr == 1) obje.stvori_padajuci(padajuci_objekti, 'extra_zivot');
-                    //if (brrr == 0) obje.stvori_padajuci(padajuci_objekti, 'ljepljiva_lopta');
-                    if (brrr == 0) obje.stvori_padajuci(padajuci_objekti, 'dvije_lopte');
-                    brrr++;
-                    objekti.splice(i, 1);
+            for (var j = 0; j < brlopti; j++) {
+                var obje = objekti[i];
+                if (j == 0)  var ll = lopta;
+                else var ll = lopta1;
+                
+                if (obje.interakcija(ll, dt)) {
+                    if (j == 0) flag = false;
+                    else flag1 = false;
+                    
+                    if (!obje.aktivan) {
+                        if (Math.random() < 0.1) {
+                            var ran = Math.random();
+                            if (ran < 0.2)  obje.stvori_padajuci(padajuci_objekti, 'spora_lopta');
+                            else if (ran < 0.4)  obje.stvori_padajuci(padajuci_objekti, 'jaka_lopta');
+                            else if (ran < 0.6)  obje.stvori_padajuci(padajuci_objekti, 'dvije_lopte');
+                            else if (ran < 0.8)  obje.stvori_padajuci(padajuci_objekti, 'extra_zivot');
+                            else if (ran < 1.0)  obje.stvori_padajuci(padajuci_objekti, 'ljepljiva_lopta');
+                        }
+                        
+                        brrr++;
+                        objekti.splice(i, 1);
+                        break;
+                    }
                 }
             }
         }
@@ -564,6 +581,8 @@ function engine() {
                 }
             }
         }
+        
+      if (lopta1 === 0) {
         
         if (reket.game_over(lopta)) {
             clearInterval(id);
@@ -585,7 +604,36 @@ function engine() {
             }
             else zavrsi_gem(gameoverfl);
         }
-        if (flag) lopta.pomakni(dt);
+      } else {  // lopta1 je aktivna
+          if (reket.game_over(lopta1))  {lopta1.obrisi(); lopta1 = 0;}
+          if (reket.game_over(lopta))  {
+            if (lopta1 === 0) {  
+              clearInterval(id);
+              gamefl = false;
+              console.log('UGASIO sam interval');
+              lives--;
+              postavi_zivote(lives);
+              setTimeout(function() {document.getElementById("zvuk11").play();}, 100);
+            
+              for (var i = padajuci_objekti.length-1; i > -1; i--)  {
+                  var obje1 = padajuci_objekti[i];
+                  obje1.ukloni();
+              }
+              padajuci_objekti = [];
+            
+              if (lives == 0) {
+                  gameoverfl = true;
+                  zavrsi_gem(gameoverfl);
+              } else zavrsi_gem(gameoverfl);
+            } else { // lopta je pobjegla reketu, ali jos igra lopta1
+              lopta.obrisi();
+              lopta = lopta1;
+              lopta1 = 0;
+            }
+          }
+      }      
+      if (flag) lopta.pomakni(dt);
+      if (lopta1 !== 0 && flag1) lopta1.pomakni(dt);
     }
     
 }
@@ -688,12 +736,20 @@ function Lopta(radijus, centarx, centary, vl) {
     this.stickyball = false; // za true lopta se zalijepi za reket i ceka ponovo ispaljivanje
     this.spora = false;  // za true je lopta spora
     
-    this.el = $("<div></div>");
-    this.el.attr('id', 'lopta');
-    this.el.css('grid-column', Math.floor(this.centarx-radijus).toString() + ' / span ' + (2*radijus).toString());
-    this.el.css('grid-row', Math.floor(this.centary-radijus).toString() + ' / span ' + (2*radijus).toString());
+    var el = $("<div></div>");
+    el.attr("id", "lopta"+idbr);
+    //console.log('id lopte je ' + this.el.attr('id'));
+    this.id = "lopta"+idbr;
+    idbr++;
+    el.css('grid-column', Math.floor(this.centarx-radijus).toString() + ' / span ' + (2*radijus).toString());
+    el.css('grid-row', Math.floor(this.centary-radijus).toString() + ' / span ' + (2*radijus).toString());
+    this.br_odbijanja = 0; // za kriticni broj odbijanja od lijevog i desnog zida randomizira se smjer lopte
     
-    $('#prostor').append(this.el);
+    $('#prostor').append(el);
+    
+    this.obrisi = function() {
+        $('#'+this.id).remove();
+    }
     
     this.upit = function() {
         console.log("trenutna brzina loptice je (" + this.vx + ', ' + this.vy + ')');
@@ -724,8 +780,8 @@ function Lopta(radijus, centarx, centary, vl) {
     this.postavi_poziciju = function(centarx, centary) {  //  postavi loptu na poziciju u pikselima
         this.centarx = centarx;
         this.centary = centary;
-        this.el.css('grid-column', Math.floor(this.centarx-radijus).toString() + ' / span ' + (2*radijus).toString());
-        this.el.css('grid-row', Math.floor(this.centary-radijus).toString() + ' / span ' + (2*radijus).toString());
+        $('#'+this.id).css('grid-column', Math.floor(this.centarx-radijus).toString() + ' / span ' + (2*radijus).toString());
+        $('#'+this.id).css('grid-row', Math.floor(this.centary-radijus).toString() + ' / span ' + (2*radijus).toString());
     }
     
     this.postavi_na_reket = function(reket) {  //  postavi loptu na reket
@@ -734,20 +790,20 @@ function Lopta(radijus, centarx, centary, vl) {
         this.centarx = reket.centarx;
         this.centary = reket.centary - reket.visina/2 - this.radijus;
         reket.sticked = true;
-        this.el.css('grid-column', Math.floor(this.centarx-radijus).toString() + ' / span ' + (2*radijus).toString());
-        this.el.css('grid-row', Math.floor(this.centary-radijus).toString() + ' / span ' + (2*radijus).toString());
+        $('#'+this.id).css('grid-column', Math.floor(this.centarx-radijus).toString() + ' / span ' + (2*radijus).toString());
+        $('#'+this.id).css('grid-row', Math.floor(this.centary-radijus).toString() + ' / span ' + (2*radijus).toString());
     }
     
     this.pomakni = function(dt) {
         this.centarx += this.vx * dt/1000;
         this.centary += this.vy * dt/1000;
-        this.el.css('grid-column', Math.floor(this.centarx-radijus).toString() + ' / span ' + (2*radijus).toString());
-        this.el.css('grid-row', Math.floor(this.centary-radijus).toString() + ' / span ' + (2*radijus).toString());
+        $('#'+this.id).css('grid-column', Math.floor(this.centarx-radijus).toString() + ' / span ' + (2*radijus).toString());
+        $('#'+this.id).css('grid-row', Math.floor(this.centary-radijus).toString() + ' / span ' + (2*radijus).toString());
     }
     
     this.pomakni_na_reketu = function(dt, v) {
         this.centarx += v * dt / 1000;
-        this.el.css('grid-column', Math.floor(this.centarx-radijus).toString() + ' / span ' + (2*radijus).toString());
+        $('#'+this.id).css('grid-column', Math.floor(this.centarx-radijus).toString() + ' / span ' + (2*radijus).toString());
     }
     
     this.interakcija_zidovi = function(zid, dt) {
@@ -767,6 +823,16 @@ function Lopta(radijus, centarx, centary, vl) {
                 this.centary += this.vy * dt/1000;
                 flag = true;
                 zvuk1();
+                this.br_odbijanja++;
+                if (this.br_odbijanja >= 4) {
+                    // ovdje ide randomizacija smjera lopte
+                    var t1 = [this.vx]; var t2 = [this.vy]; var t3 = [0]; var t4 = [0];
+                    var fii = (Math.random() * 2 - 1) * 30;
+                    transform1(t1, t2, t3, t4, fii / 180 * Math.PI);
+                    this.vx = t3[0];
+                    this.vy = t4[0];
+                    this.br_odbijanja = 0;
+                }
             }
         } else {
             var pomak = this.vx * dt / 1000;
@@ -780,6 +846,16 @@ function Lopta(radijus, centarx, centary, vl) {
                 this.centary += this.vy * dt/1000;
                 flag = true;
                 zvuk1();
+                this.br_odbijanja++;
+                if (this.br_odbijanja >= 4) {
+                    // ovdje ide randomizacija smjera lopte
+                    var t1 = [this.vx]; var t2 = [this.vy]; var t3 = [0]; var t4 = [0];
+                    var fii = (Math.random() * 2 - 1) * 30;
+                    transform1(t1, t2, t3, t4, fii / 180 * Math.PI);
+                    this.vx = t3[0];
+                    this.vy = t4[0];
+                    this.br_odbijanja = 0;
+                }
             }
         }
         
@@ -798,6 +874,7 @@ function Lopta(radijus, centarx, centary, vl) {
                 this.centarx += this.vx * dt/1000;
                 flag = true;
                 zvuk1();
+                this.br_odbijanja = 0;
             }
            } 
         } else {
@@ -812,6 +889,7 @@ function Lopta(radijus, centarx, centary, vl) {
                 this.centarx += this.vx * dt/1000;
                 flag = true;
                 zvuk1();
+                this.br_odbijanja = 0;
             }
         }
         
@@ -862,6 +940,11 @@ function Padajuci_objekt(centarx, centary, sirina, visina, v, tip) {
                 lopta.vx *= 300 / lopta.vl;
                 lopta.vy *= 300 / lopta.vl;
                 lopta.spora = true;
+                if (lopta1 !== 0) {
+                    lopta1.vx *= 300 / lopta1.vl;
+                    lopta1.vy *= 300 / lopta1.vl;
+                    lopta1.spora = true;
+                }
                 if (typeof id_vrijeme !== 'undefined') clearTimeout(id_vrijeme);
                 id_vrijeme = setTimeout(updejtaj_vrijeme, 1000, true);
                 zadnji_padajuci = id_vrijeme;
@@ -870,19 +953,30 @@ function Padajuci_objekt(centarx, centary, sirina, visina, v, tip) {
                 document.getElementById("zvuk8").play();
                 if (typeof id_poruka !== 'undefined') clearTimeout(id_poruka);
                 id_poruka = setTimeout(makni_poruku, 2000);
-            } else if (this.tip == 'dvije_lopte') {
-                
+            } else if (this.tip == 'dvije_lopte' && lopta1 === 0) {
+                lopta1 = new Lopta(10, lopta.centarx, lopta.centary, 500);
+                lopta1.postavi_brzinu(-1*lopta.vx, -1*lopta.vy);
+                //Lopta(radijus, centarx, centary, vl)
+                console.log('TREBALE BI BITI DVIJE LOTPE');
+                lopta1.randomfl = lopta.randomfl; // za true random ispaljivanje, za false ravno ispaljivanje
+                lopta1.power = lopta.power; // za true je lopta probojna i ne odbija se od objekata.
+                lopta1.stickyball = lopta.stickyball; // za true lopta se zalijepi za reket i ceka ponovo ispaljivanje
+                lopta1.spora = lopta.spora;  // za true je lopta spora
                 
                 makni_poruku();
                 poruka('Double ball!');
-                //document.getElementById("zvuk7").play();
+                document.getElementById("zvuk12").play();
                 if (typeof id_poruka !== 'undefined') clearTimeout(id_poruka);
                 id_poruka = setTimeout(makni_poruku, 2000);
             } else if (this.tip == 'jaka_lopta') {
-                time = 40;
+                time = 15;
                 postavi_vrijeme(time);
                 lopta.power = true;
-                $('#lopta').css('background-color', 'red');
+                $('#'+lopta.id).css('background-color', 'red');
+                if (lopta1 !== 0) {
+                    lopta1.power = true;
+                    $('#'+lopta1.id).css('background-color', 'red');    
+                }
                 if (typeof id_vrijeme1 !== 'undefined') clearTimeout(id_vrijeme1);
                 id_vrijeme1 = setTimeout(updejtaj_vrijeme1, 1000, true);
                 zadnji_padajuci = id_vrijeme1;
@@ -901,10 +995,14 @@ function Padajuci_objekt(centarx, centary, sirina, visina, v, tip) {
                 id_poruka = setTimeout(makni_poruku, 2000);
             } else if (this.tip == 'ljepljiva_lopta') {
                 lopta.stickyball = true;
+                $('#'+lopta.id).css('background-color', '#03f8fc');
+                if (lopta1 !== 0) {
+                    lopta1.stickyball = true;
+                    $('#'+lopta1.id).css('background-color', '#03f8fc');
+                }
                 makni_poruku();
                 poruka('Sticky ball!');
                 document.getElementById("zvuk10").play();
-                $('#lopta').css('background-color', '#03f8fc');
                 id_poruka = setTimeout(makni_poruku, 2000);
                 time = 20;
                 postavi_vrijeme(time);
@@ -930,6 +1028,8 @@ function Objekt(centarx, centary, sirina, visina, boja, fi) {
 // konstruktor objekta-mete koju gadamo. prva cetiri parametra zadaju polozaj i dimenzije objekta    
 // fi je kut nagiba objekta u stupnjevima, za strogo nula imamo klasicni objekt
     this.id = nacrtaj_pravokutnik(centarx, centary, sirina, visina, boja, fi);
+    this.pravi_centarx = centarx;
+    this.pravi_centary = centary;
     if (fi === 0) {
         this.centarx = centarx;
         this.centary = centary;
@@ -958,20 +1058,20 @@ Objekt.prototype.stvori_padajuci = function(objekti, tip) {
     var sir = 40;
     var vis = 40;
     if (tip == 'spora_lopta') {
-        var obj = new Padajuci_objekt(this.centarx, this.centary + (this.visina+vis)/2, sir, vis, 100, tip);
+        var obj = new Padajuci_objekt(this.pravi_centarx, this.pravi_centary + (this.visina+vis)/2, sir, vis, 100, tip);
     } else if (tip == 'jaka_lopta') {
-        var obj = new Padajuci_objekt(this.centarx, this.centary + (this.visina+vis)/2, sir, vis, 100, tip);
+        var obj = new Padajuci_objekt(this.pravi_centarx, this.pravi_centary + (this.visina+vis)/2, sir, vis, 100, tip);
     } else if (tip == 'dvije_lopte') {
         sir = 80;
-        var obj = new Padajuci_objekt(this.centarx, this.centary + (this.visina+vis)/2, sir, vis, 100, tip);
+        var obj = new Padajuci_objekt(this.pravi_centarx, this.pravi_centary + (this.visina+vis)/2, sir, vis, 100, tip);
     } else if (tip == 'extra_zivot') {
         sir = 50;
         vis = 50;
-        var obj = new Padajuci_objekt(this.centarx, this.centary + (this.visina+vis)/2, sir, vis, 100, tip);
+        var obj = new Padajuci_objekt(this.pravi_centarx, this.pravi_centary + (this.visina+vis)/2, sir, vis, 100, tip);
     } else if (tip == 'ljepljiva_lopta') {
         sir = 50;
         vis = 50;
-        var obj = new Padajuci_objekt(this.centarx, this.centary + (this.visina+vis)/2, sir, vis, 100, tip);
+        var obj = new Padajuci_objekt(this.pravi_centarx, this.pravi_centary + (this.visina+vis)/2, sir, vis, 100, tip);
     } 
     objekti.push(obj);
 }
@@ -1020,7 +1120,9 @@ Objekt.prototype.interakcija = function(lopta, dt) {
             this.ukloni_objekt();
             zvuk3();
             vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
-            
+            lopta.br_odbijanja = 0;
+            bodovi += 10;
+            postavi_bodove(bodovi);
             return true;
         }
     }
@@ -1041,6 +1143,9 @@ Objekt.prototype.interakcija = function(lopta, dt) {
             this.ukloni_objekt();
             zvuk3();
             vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
+            lopta.br_odbijanja = 0;
+            bodovi += 10;
+            postavi_bodove(bodovi);
             return true;
         }
     }
@@ -1060,6 +1165,9 @@ Objekt.prototype.interakcija = function(lopta, dt) {
             zvuk3();
             
             vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
+            lopta.br_odbijanja = 0;
+            bodovi += 10;
+            postavi_bodove(bodovi);
             return true;
         }
     }
@@ -1080,6 +1188,9 @@ Objekt.prototype.interakcija = function(lopta, dt) {
             zvuk3();
             
             vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
+            lopta.br_odbijanja = 0;
+            bodovi += 10;
+            postavi_bodove(bodovi);
             return true;
         }
     }
@@ -1109,6 +1220,9 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         zvuk3();
         
         vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
+        lopta.br_odbijanja = 0;
+        bodovi += 10;
+        postavi_bodove(bodovi);
         return true;
     }
         
@@ -1137,6 +1251,9 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         zvuk3();
         
         vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
+        lopta.br_odbijanja = 0;
+        bodovi += 10;
+        postavi_bodove(bodovi);
         return true;
     }
         
@@ -1165,6 +1282,9 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         zvuk3();
         
         vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
+        lopta.br_odbijanja = 0;
+        bodovi += 10;
+        postavi_bodove(bodovi);
         return true;
     }
         
@@ -1193,6 +1313,9 @@ Objekt.prototype.interakcija = function(lopta, dt) {
         zvuk3();
         
         vrati_lopti_varijable(lopta, loptax, loptay, loptavx, loptavy, this.fi);
+        lopta.br_odbijanja = 0;
+        bodovi += 10;
+        postavi_bodove(bodovi);
         return true;
     }
         
@@ -1260,7 +1383,10 @@ function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
                 el.css('grid-column', kor1.toString() + ' / span ' + sirina.toString());
                 el.css('grid-row', kor2.toString() + ' / span ' + visina.toString());
                 // ovdje umecemo sticked ball
-                if (this.sticked) lopta.pomakni_na_reketu(dt, -1 * this.brzina);
+                if (this.sticked) {
+                    if ((Math.abs(lopta.vx)+Math.abs(lopta.vy)) < 0.2) lopta.pomakni_na_reketu(dt, -1 * this.brzina);
+                    if (lopta1 !== 0 && (Math.abs(lopta1.vx)+Math.abs(lopta1.vy)) < 0.2) lopta1.pomakni_na_reketu(dt, -1 * this.brzina);
+                }
             }
         } else {
             novix = this.centarx + this.brzina * dt / 1000;
@@ -1274,7 +1400,10 @@ function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
                 el.css('grid-column', kor1.toString() + ' / span ' + sirina.toString());
                 el.css('grid-row', kor2.toString() + ' / span ' + visina.toString());
                 // ovdje umecemo sticked ball
-                if (this.sticked) lopta.pomakni_na_reketu(dt, this.brzina);
+                if (this.sticked) {
+                    if ((Math.abs(lopta.vx)+Math.abs(lopta.vy)) < 0.2) lopta.pomakni_na_reketu(dt, this.brzina);
+                    if (lopta1 !== 0 && (Math.abs(lopta1.vx)+Math.abs(lopta1.vy)) < 0.2) lopta1.pomakni_na_reketu(dt, this.brzina);
+                }
             }
         }
     }
@@ -1322,6 +1451,7 @@ function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
                     lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
                 }
                 zvuk2();
+                lopta.br_odbijanja = 0;
                 return true;
             }
         }
@@ -1337,6 +1467,7 @@ function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
                 lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
                 lopta.centary += dt / 1000 * lopta.vy;
                 zvuk2();
+                lopta.br_odbijanja = 0;
                 return true;
             }
         }
@@ -1352,6 +1483,7 @@ function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
                 lopta.centarx += (dt-dt1) / 1000 * lopta.vx;
                 lopta.centary += dt / 1000 * lopta.vy;
                 zvuk2();
+                lopta.br_odbijanja = 0;
                 return true;
             }
         }
@@ -1377,6 +1509,7 @@ function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
             lopta.centary += (dt-dt1) / 1000 * lopta.vy;
             
             zvuk2();
+            lopta.br_odbijanja = 0;
             return true;
         }
         
@@ -1401,6 +1534,7 @@ function Reket(centarx, centary, brzina, sirina, visina, boja, zakrivljenost) {
             lopta.centary += (dt-dt1) / 1000 * lopta.vy;
             
             zvuk2();
+            lopta.br_odbijanja = 0;
             return true;
         }
         
@@ -1706,11 +1840,19 @@ function updejtaj_time2() {
         tim--;
         if (zadnji_padajuci == 0)  zadnji_padajuci = id_vrijeme2;
         if (zadnji_padajuci == id_vrijeme2)  postavi_vrijeme(tim);
-        if (tim == 0) {
+        if (tim <= 0) {
             console.log('timer je gotov');
             //clearTimeout(id_vrijeme);
             lopta.stickyball = false;
-            $('#lopta').css('background-color', boja(lopta));
+            $('#'+lopta.id).css('background-color', boja(lopta));
+            reket.sticked = false;
+            if (Math.abs(lopta.vx) + Math.abs(lopta.vy) < 0.1) lopta.random_brzina();
+            
+            if (lopta1 !== 0) {
+                if (Math.abs(lopta1.vx) + Math.abs(lopta1.vy)  < 0.1) {lopta1.random_brzina();}
+                lopta1.stickyball = false;
+                $('#'+lopta1.id).css('background-color', boja(lopta1));
+            }
             if (zadnji_padajuci == id_vrijeme2)  zadnji_padajuci = 0;
         } else {
             if (zadnji_padajuci == id_vrijeme2) {
@@ -1733,11 +1875,15 @@ function updejtaj_time1() {
         tim--;
         if (zadnji_padajuci == 0)  zadnji_padajuci = id_vrijeme1;
         if (zadnji_padajuci == id_vrijeme1)  postavi_vrijeme(tim);
-        if (tim == 0) {
+        if (tim <= 0) {
             console.log('timer je gotov');
             //clearTimeout(id_vrijeme);
             lopta.power = false;
-            $('#lopta').css('background-color', boja(lopta));
+            $('#'+lopta.id).css('background-color', boja(lopta));
+            if (lopta1 !== 0) {
+                lopta1.power = false;
+                $('#'+lopta1.id).css('background-color', boja(lopta1));
+            }
             if (zadnji_padajuci == id_vrijeme1)  zadnji_padajuci = 0;
         } else {
             if (zadnji_padajuci == id_vrijeme1) {
@@ -1760,7 +1906,7 @@ function updejtaj_time() {
         tim--;
         if (zadnji_padajuci == 0)  zadnji_padajuci = id_vrijeme;
         if (zadnji_padajuci == id_vrijeme)  postavi_vrijeme(tim);
-        if (tim == 0) {
+        if (tim <= 0) {
             console.log('timer je gotov');
             //clearTimeout(id_vrijeme);
             var v = Math.sqrt(lopta.vx*lopta.vx + lopta.vy*lopta.vy);
@@ -1768,9 +1914,22 @@ function updejtaj_time() {
                 lopta.vx *= lopta.vl / v;
                 lopta.vy *= lopta.vl / v;
             }
-            $('#lopta').css('background-color', boja(lopta));
-            document.getElementById("zvuk9").play();
+            //$('#lopta').css('background-color', boja(lopta));
+            $('#'+lopta.id).css('background-color', boja(lopta));
             lopta.spora = false;
+            
+            if (lopta1 !== 0) {
+                var v = Math.sqrt(lopta1.vx*lopta1.vx + lopta1.vy*lopta1.vy);
+                if (v != 0) {
+                    lopta1.vx *= lopta1.vl / v;
+                    lopta1.vy *= lopta1.vl / v;
+                }
+                //$('#lopta').css('background-color', boja(lopta));
+                $('#'+lopta1.id).css('background-color', boja(lopta1));
+                lopta1.spora = false;
+            }
+            
+            document.getElementById("zvuk9").play();
             if (zadnji_padajuci == id_vrijeme)  zadnji_padajuci = 0;
         } else {
             if (zadnji_padajuci == id_vrijeme) {
@@ -1849,7 +2008,9 @@ function pritisak_gumba_down(ev) {
             }
             if (reket.sticked) {
                reket.sticked = false;
-               lopta.random_brzina();
+               
+               if (Math.abs(lopta.vx) + Math.abs(lopta.vy) < 0.1) lopta.random_brzina();
+               if (lopta1 !== 0 && (Math.abs(lopta1.vx) + Math.abs(lopta1.vy) ) < 0.1) {lopta1.random_brzina();}
                lopta.upit();
             }
             break;

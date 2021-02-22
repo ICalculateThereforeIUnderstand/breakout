@@ -52,7 +52,7 @@ header {
     grid-column: 1080 / span 50;
 }
 
-#lopta {
+[id^="lopta"] {
     background-color: yellow;
     clip-path: circle(50% at 50% 50%);
 }
